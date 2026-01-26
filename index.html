@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR NEXUS | منصة الاكتشاف الذكية</title>
+    <meta name="description"
+        content="QR NEXUS - منصة اكتشاف ذكية لإنشاء أكواد QR والعثور على المحلات والخدمات بدون تسجيل">
+    <meta name="theme-color" content="#0a0a0a">
+
+    <!-- Favicon & PWA -->
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Preload Critical Assets -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- GSAP for Advanced Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/CustomEase.min.js"></script>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- jsQR for scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+
+<body>
+    <!-- Cinematic Loader -->
+    <div id="cinematic-loader" class="loader-overlay">
+        <div class="loader-content">
+            <div class="loader-orb">
+                <div class="orb-core"></div>
+                <div class="orb-ring ring-1"></div>
+                <div class="orb-ring ring-2"></div>
+                <div class="orb-ring ring-3"></div>
+            </div>
+            <div class="loader-text">
+                <span class="loader-letter" data-delay="0">Q</span>
+                <span class="loader-letter" data-delay="1">R</span>
+                <span class="loader-spacer"></span>
+                <span class="loader-letter" data-delay="2">N</span>
+                <span class="loader-letter" data-delay="3">E</span>
+                <span class="loader-letter" data-delay="4">X</span>
+                <span class="loader-letter" data-delay="5">U</span>
+                <span class="loader-letter" data-delay="6">S</span>
+            </div>
+            <div class="loader-tagline">منصة الاكتشاف الذكية</div>
+        </div>
+    </div>
+
+    <!-- Ambient Background -->
+    <div id="ambient-bg">
+        <canvas id="ambient-canvas"></canvas>
+        <div class="ambient-gradient"></div>
+        <div class="ambient-noise"></div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app" class="app-container">
+        <!-- Navigation Header -->
+        <header id="main-header" class="header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" class="logo-svg">
+                        <rect x="4" y="4" width="12" height="12" rx="2" class="logo-block block-1" />
+                        <rect x="24" y="4" width="12" height="12" rx="2" class="logo-block block-2" />
+                        <rect x="4" y="24" width="12" height="12" rx="2" class="logo-block block-3" />
+                        <circle cx="30" cy="30" r="6" class="logo-circle" />
+                    </svg>
+                </div>
+                <span class="logo-text">QR<span class="logo-accent">NEXUS</span></span>
+            </div>
+            <nav class="header-nav">
+                <button class="nav-btn" data-page="home" aria-label="الرئيسية">
+                    <svg viewBox="0 0 24 24" class="nav-icon">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                </button>
+                <button class="nav-btn" data-page="discover" aria-label="اكتشف">
+                    <svg viewBox="0 0 24 24" class="nav-icon">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                </button>
+                <button class="nav-btn" data-page="scan" aria-label="مسح">
+                    <svg viewBox="0 0 24 24" class="nav-icon">
+                        <path d="M3 7V5a2 2 0 012-2h2" />
+                        <path d="M17 3h2a2 2 0 012 2v2" />
+                        <path d="M21 17v2a2 2 0 01-2 2h-2" />
+                        <path d="M7 21H5a2 2 0 01-2-2v-2" />
+                        <rect x="7" y="7" width="10" height="10" rx="1" />
+                    </svg>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Page Container -->
+        <main id="page-container" class="page-container">
+            <!-- Home Page -->
+            <section id="page-home" class="page active" data-page="home">
+                <div class="page-content">
+                    <div class="hero-section">
+                        <div class="hero-glow"></div>
+                        <h1 class="hero-title">
+                            <span class="title-line line-1">أنشئ</span>
+                            <span class="title-line line-2">اكتشف</span>
+                            <span class="title-line line-3">تواصل</span>
+                        </h1>
+                        <p class="hero-subtitle">منصة QR الذكية للمحلات والخدمات</p>
+                    </div>
+
+                    <div class="action-cards">
+                        <!-- Create QR Card -->
+                        <button class="action-card card-create" id="btn-create-qr">
+                            <div class="card-glow"></div>
+                            <div class="card-icon">
+                                <svg viewBox="0 0 80 80">
+                                    <rect x="10" y="10" width="24" height="24" rx="4" class="qr-block" />
+                                    <rect x="46" y="10" width="24" height="24" rx="4" class="qr-block" />
+                                    <rect x="10" y="46" width="24" height="24" rx="4" class="qr-block" />
+                                    <path d="M46 46h24v24h-8v-8h-8v-8h-8v-8z" class="qr-block" />
+                                    <circle cx="40" cy="40" r="8" class="qr-center" />
+                                </svg>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">أنشئ QR</h3>
+                                <p class="card-desc">حوّل رابطك إلى هوية رقمية</p>
+                            </div>
+                            <div class="card-arrow">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Discover Card -->
+                        <button class="action-card card-discover" id="btn-discover">
+                            <div class="card-glow"></div>
+                            <div class="card-icon">
+                                <svg viewBox="0 0 80 80">
+                                    <circle cx="40" cy="35" r="20" class="discover-circle" />
+                                    <path d="M55 50l15 15" class="discover-line" stroke-width="6"
+                                        stroke-linecap="round" />
+                                    <circle cx="35" cy="30" r="4" class="discover-dot" />
+                                    <circle cx="45" cy="38" r="3" class="discover-dot" />
+                                </svg>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">اكتشف</h3>
+                                <p class="card-desc">ابحث عن المحلات والخدمات</p>
+                            </div>
+                            <div class="card-arrow">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Scan Card -->
+                        <button class="action-card card-scan" id="btn-scan">
+                            <div class="card-glow"></div>
+                            <div class="card-icon">
+                                <svg viewBox="0 0 80 80">
+                                    <rect x="15" y="15" width="50" height="50" rx="8" fill="none" class="scan-frame" />
+                                    <line x1="40" y1="20" x2="40" y2="60" class="scan-line" />
+                                    <circle cx="40" cy="40" r="12" class="scan-target" />
+                                </svg>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">امسح QR</h3>
+                                <p class="card-desc">افتح الكاميرا وامسح أي كود</p>
+                            </div>
+                            <div class="card-arrow">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Stats Section -->
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <span class="stat-number" id="stat-total-qr">0</span>
+                            <span class="stat-label">كود QR</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="stat-total-scans">0</span>
+                            <span class="stat-label">مسحة</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="stat-categories">8</span>
+                            <span class="stat-label">فئة</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Discover Page -->
+            <section id="page-discover" class="page" data-page="discover">
+                <div class="page-content">
+                    <div class="discover-header">
+                        <h2 class="section-title">اكتشف المحلات</h2>
+                        <div class="search-container">
+                            <div class="search-glow"></div>
+                            <svg class="search-icon" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="M21 21l-4.35-4.35" />
+                            </svg>
+                            <input type="text" id="search-input" class="search-input"
+                                placeholder="ابحث عن محل أو خدمة...">
+                        </div>
+                    </div>
+
+                    <!-- Categories Slider -->
+                    <div class="categories-container">
+                        <div class="categories-slider" id="categories-slider">
+                            <button class="category-chip active" data-category="all">
+                                <span class="chip-icon">🌟</span>
+                                <span class="chip-text">الكل</span>
+                            </button>
+                            <button class="category-chip" data-category="pharmacy">
+                                <span class="chip-icon">💊</span>
+                                <span class="chip-text">صيدليات</span>
+                            </button>
+                            <button class="category-chip" data-category="phones">
+                                <span class="chip-icon">📱</span>
+                                <span class="chip-text">هواتف</span>
+                            </button>
+                            <button class="category-chip" data-category="restaurant">
+                                <span class="chip-icon">🍽️</span>
+                                <span class="chip-text">مطاعم</span>
+                            </button>
+                            <button class="category-chip" data-category="cafe">
+                                <span class="chip-icon">☕</span>
+                                <span class="chip-text">مقاهي</span>
+                            </button>
+                            <button class="category-chip" data-category="maintenance">
+                                <span class="chip-icon">🔧</span>
+                                <span class="chip-text">صيانة</span>
+                            </button>
+                            <button class="category-chip" data-category="fashion">
+                                <span class="chip-icon">👔</span>
+                                <span class="chip-text">أزياء</span>
+                            </button>
+                            <button class="category-chip" data-category="services">
+                                <span class="chip-icon">⚡</span>
+                                <span class="chip-text">خدمات</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stores Grid -->
+                    <div class="stores-grid" id="stores-grid">
+                        <!-- Stores will be dynamically loaded here -->
+                        <div class="empty-state" id="empty-discover">
+                            <div class="empty-icon">
+                                <svg viewBox="0 0 80 80">
+                                    <circle cx="40" cy="40" r="30" fill="none" stroke="currentColor" stroke-width="2"
+                                        opacity="0.3" />
+                                    <path d="M40 25v30M25 40h30" stroke="currentColor" stroke-width="2" opacity="0.5" />
+                                </svg>
+                            </div>
+                            <p class="empty-text">لا توجد محلات حالياً</p>
+                            <button class="btn-primary btn-add-first" id="btn-add-first">
+                                <span>أضف أول محل</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scan Page -->
+            <section id="page-scan" class="page" data-page="scan">
+                <div class="page-content scan-content">
+                    <div class="scanner-container">
+                        <div class="scanner-frame">
+                            <div class="frame-corner corner-tl"></div>
+                            <div class="frame-corner corner-tr"></div>
+                            <div class="frame-corner corner-bl"></div>
+                            <div class="frame-corner corner-br"></div>
+                            <div class="scan-line-animated"></div>
+                        </div>
+                        <video id="scanner-video" class="scanner-video" playsinline></video>
+                        <canvas id="scanner-canvas" class="scanner-canvas"></canvas>
+                    </div>
+                    <div class="scanner-info">
+                        <p class="scanner-hint">وجّه الكاميرا نحو كود QR</p>
+                        <div class="scanner-status" id="scanner-status">
+                            <div class="status-dot"></div>
+                            <span>جاري البحث...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Create QR Modal -->
+    <div id="modal-create" class="modal-overlay">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container">
+            <div class="modal-glow"></div>
+            <button class="modal-close" id="modal-close-create" aria-label="إغلاق">
+                <svg viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">أنشئ QR</h2>
+                    <p class="modal-subtitle">حوّل رابطك إلى هوية رقمية مميزة</p>
+                </div>
+
+                <form id="create-qr-form" class="create-form">
+                    <div class="form-step active" data-step="1">
+                        <div class="input-group">
+                            <label class="input-label" for="store-name">اسم المحل</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="store-name" class="form-input" placeholder="مثال: صيدلية النور"
+                                    required>
+                                <div class="input-glow"></div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="store-link">الرابط</label>
+                            <div class="input-wrapper">
+                                <input type="url" id="store-link" class="form-input" placeholder="https://..." required>
+                                <div class="input-glow"></div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">اختر المهنة</label>
+                            <div class="profession-grid">
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="pharmacy" required>
+                                    <div class="profession-card">
+                                        <span class="profession-icon">💊</span>
+                                        <span class="profession-name">صيدلية</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="phones">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">📱</span>
+                                        <span class="profession-name">هواتف</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="restaurant">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">🍽️</span>
+                                        <span class="profession-name">مطعم</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="cafe">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">☕</span>
+                                        <span class="profession-name">مقهى</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="maintenance">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">🔧</span>
+                                        <span class="profession-name">صيانة</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="fashion">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">👔</span>
+                                        <span class="profession-name">أزياء</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="services">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">⚡</span>
+                                        <span class="profession-name">خدمات</span>
+                                    </div>
+                                </label>
+                                <label class="profession-option">
+                                    <input type="radio" name="profession" value="other">
+                                    <div class="profession-card">
+                                        <span class="profession-icon">🏪</span>
+                                        <span class="profession-name">أخرى</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-generate">
+                            <span class="btn-text">توليد QR</span>
+                            <div class="btn-glow"></div>
+                            <div class="btn-particles"></div>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- QR Result -->
+                <div id="qr-result" class="qr-result hidden">
+                    <div class="qr-display">
+                        <div class="qr-frame">
+                            <div id="qr-code-container"></div>
+                        </div>
+                        <div class="qr-shine"></div>
+                    </div>
+                    <div class="qr-actions">
+                        <button class="btn-action" id="btn-save-qr">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            <span>حفظ الصورة</span>
+                        </button>
+                        <button class="btn-action" id="btn-share-qr">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="18" cy="5" r="3" />
+                                <circle cx="6" cy="12" r="3" />
+                                <circle cx="18" cy="19" r="3" />
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                            </svg>
+                            <span>مشاركة</span>
+                        </button>
+                        <button class="btn-action btn-new" id="btn-new-qr">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            <span>إنشاء جديد</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store Detail Modal -->
+    <div id="modal-store" class="modal-overlay">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container store-modal">
+            <div class="modal-glow"></div>
+            <button class="modal-close" id="modal-close-store" aria-label="إغلاق">
+                <svg viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="store-identity-page" id="store-identity">
+                <!-- Store identity content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Result Modal -->
+    <div id="modal-scan-result" class="modal-overlay">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container scan-result-modal">
+            <div class="modal-glow"></div>
+            <button class="modal-close" id="modal-close-scan" aria-label="إغلاق">
+                <svg viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="scan-result-content" id="scan-result-content">
+                <!-- Scan result will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/scanner.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

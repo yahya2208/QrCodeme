@@ -1,0 +1,19 @@
+{
+  "name": "QR NEXUS",
+  "short_name": "QR NEXUS",
+  "description": "منصة اكتشاف ذكية لإنشاء أكواد QR والعثور على المحلات والخدمات",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ffcc00",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "lang": "ar",
+  "dir": "rtl"
+}
