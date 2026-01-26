@@ -1,14 +1,15 @@
-// QR NEXUS - Configuration
+// QR NEXUS - Frontend Configuration
+// No sensitive keys here - all handled by backend
+
 const CONFIG = {
-    // Supabase Configuration
-    SUPABASE_URL: 'YOUR_SUPABASE_URL',
-    SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
-    
+    // Backend API URL
+    API_URL: 'http://localhost:3001/api',
+
     // App Settings
     APP_NAME: 'QR NEXUS',
     APP_VERSION: '1.0.0',
-    
-    // Categories
+
+    // Categories (for UI only)
     CATEGORIES: {
         all: { name: 'الكل', icon: '🌟' },
         pharmacy: { name: 'صيدلية', icon: '💊' },
@@ -20,7 +21,7 @@ const CONFIG = {
         services: { name: 'خدمات', icon: '⚡' },
         other: { name: 'أخرى', icon: '🏪' }
     },
-    
+
     // Animation Timings
     ANIMATION: {
         LOADER_DURATION: 2500,
@@ -28,7 +29,7 @@ const CONFIG = {
         MODAL_TRANSITION: 400,
         RIPPLE_DURATION: 600
     },
-    
+
     // QR Settings
     QR: {
         SIZE: 200,

@@ -5,24 +5,44 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Validate environment variables
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    console.warn('⚠️  Supabase credentials not configured. Using mock mode.');
-}
+// Check if Supabase is properly configured
+const isSupabaseConfigured = () => {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
 
-// Create Supabase client with service role key (full access)
-const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY
-    ? createClient(
-        process.env.SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_KEY,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
+    if (!url || !key) return false;
+    if (url.includes('your_supabase') || key.includes('your_supabase')) return false;
+
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+// Create Supabase client only if properly configured
+let supabase = null;
+
+if (isSupabaseConfigured()) {
+    try {
+        supabase = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_KEY,
+            {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
             }
-        }
-    )
-    : null;
+        );
+        console.log('✅ Supabase connected');
+    } catch (error) {
+        console.warn('⚠️ Supabase connection failed:', error.message);
+    }
+} else {
+    console.log('ℹ️ Using mock storage (Supabase not configured)');
+}
 
 // Mock data storage for development without Supabase
 const mockStorage = {
