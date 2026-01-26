@@ -1,204 +1,260 @@
 /**
- * QR NEXUS - Supabase Client
- * Server-side only - keys never exposed to frontend
+ * QR NEXUS - Supabase Database Layer
+ * Server-side only - ALL data stored in cloud
+ * NO localStorage fallback - Cloud is mandatory
  */
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Check if Supabase is properly configured
-const isSupabaseConfigured = () => {
+// Validate Supabase configuration
+const validateConfig = () => {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_KEY;
 
-    if (!url || !key) return false;
-    if (url.includes('your_supabase') || key.includes('your_supabase')) return false;
+    if (!url || !key) {
+        throw new Error('❌ FATAL: SUPABASE_URL and SUPABASE_SERVICE_KEY are required');
+    }
+
+    if (url.includes('your_supabase') || key.includes('your_supabase')) {
+        throw new Error('❌ FATAL: Supabase credentials not configured properly');
+    }
 
     try {
         new URL(url);
-        return true;
     } catch {
-        return false;
+        throw new Error('❌ FATAL: Invalid SUPABASE_URL format');
     }
+
+    return { url, key };
 };
 
-// Create Supabase client only if properly configured
+// Initialize Supabase client
 let supabase = null;
 
-if (isSupabaseConfigured()) {
-    try {
-        supabase = createClient(
-            process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_KEY,
-            {
-                auth: {
-                    autoRefreshToken: false,
-                    persistSession: false
-                }
-            }
-        );
-        console.log('✅ Supabase connected');
-    } catch (error) {
-        console.warn('⚠️ Supabase connection failed:', error.message);
-    }
-} else {
-    console.log('ℹ️ Using mock storage (Supabase not configured)');
+try {
+    const { url, key } = validateConfig();
+    supabase = createClient(url, key, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    });
+    console.log('✅ Supabase connected - Cloud storage active');
+} catch (error) {
+    console.error(error.message);
+    console.error('💀 Server cannot start without Supabase connection');
+    process.exit(1); // Exit if no database
 }
 
-// Mock data storage for development without Supabase
-const mockStorage = {
-    stores: [],
-
-    // Generate unique ID
-    generateId() {
-        return 'qr_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-    }
-};
-
 /**
- * Database abstraction layer
- * Works with Supabase in production, mock storage in development
+ * Database operations - ALL cloud-based
  */
 const db = {
-    // Get all stores, optionally filtered by category
-    async getStores(category = 'all') {
-        if (supabase) {
-            let query = supabase
-                .from('stores')
-                .select('*')
-                .order('created_at', { ascending: false });
+    // ================
+    // CATEGORIES
+    // ================
+    async getCategories() {
+        const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order');
 
-            if (category !== 'all') {
-                query = query.eq('category', category);
-            }
-
-            const { data, error } = await query;
-            if (error) throw error;
-            return data || [];
-        }
-
-        // Mock mode
-        if (category === 'all') return mockStorage.stores;
-        return mockStorage.stores.filter(s => s.category === category);
+        if (error) throw error;
+        return data || [];
     },
 
-    // Get single store by ID
-    async getStore(id) {
-        if (supabase) {
-            const { data, error } = await supabase
-                .from('stores')
-                .select('*')
-                .eq('id', id)
-                .single();
+    // ================
+    // SHOPS
+    // ================
+    async getShops(categoryId = null) {
+        let query = supabase
+            .from('shops')
+            .select(`
+                *,
+                category:categories(*),
+                stats:shop_stats(total_scans, total_views)
+            `)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false });
 
-            if (error && error.code !== 'PGRST116') throw error;
-            return data;
+        if (categoryId && categoryId !== 'all') {
+            query = query.eq('category_id', categoryId);
         }
 
-        // Mock mode
-        return mockStorage.stores.find(s => s.id === id) || null;
+        const { data, error } = await query;
+        if (error) throw error;
+
+        // Flatten stats
+        return (data || []).map(shop => ({
+            ...shop,
+            scans: shop.stats?.[0]?.total_scans || 0,
+            views: shop.stats?.[0]?.total_views || 0,
+            stats: undefined
+        }));
     },
 
-    // Create new store
-    async createStore(storeData) {
-        const store = {
-            id: mockStorage.generateId(),
-            name: storeData.name,
-            link: storeData.link,
-            category: storeData.category,
-            scans: 0,
-            views: 0,
-            created_at: new Date().toISOString()
-        };
+    async getShop(id) {
+        const { data, error } = await supabase
+            .from('shops')
+            .select(`
+                *,
+                category:categories(*),
+                stats:shop_stats(total_scans, total_views),
+                qr_code:qr_codes(id, qr_content)
+            `)
+            .eq('id', id)
+            .single();
 
-        if (supabase) {
-            const { data, error } = await supabase
-                .from('stores')
-                .insert([store])
-                .select()
-                .single();
+        if (error && error.code !== 'PGRST116') throw error;
 
-            if (error) throw error;
-            return data;
-        }
+        if (!data) return null;
 
-        // Mock mode
-        mockStorage.stores.unshift(store);
-        return store;
-    },
-
-    // Increment scan count
-    async incrementScan(id) {
-        if (supabase) {
-            const { error } = await supabase.rpc('increment_scan', { store_id: id });
-            if (error) {
-                // Fallback: manual increment
-                const store = await this.getStore(id);
-                if (store) {
-                    await supabase
-                        .from('stores')
-                        .update({ scans: (store.scans || 0) + 1 })
-                        .eq('id', id);
-                }
-            }
-            return;
-        }
-
-        // Mock mode
-        const store = mockStorage.stores.find(s => s.id === id);
-        if (store) store.scans = (store.scans || 0) + 1;
-    },
-
-    // Increment view count
-    async incrementView(id) {
-        if (supabase) {
-            const { error } = await supabase.rpc('increment_view', { store_id: id });
-            if (error) {
-                const store = await this.getStore(id);
-                if (store) {
-                    await supabase
-                        .from('stores')
-                        .update({ views: (store.views || 0) + 1 })
-                        .eq('id', id);
-                }
-            }
-            return;
-        }
-
-        // Mock mode
-        const store = mockStorage.stores.find(s => s.id === id);
-        if (store) store.views = (store.views || 0) + 1;
-    },
-
-    // Search stores
-    async searchStores(term) {
-        if (supabase) {
-            const { data, error } = await supabase
-                .from('stores')
-                .select('*')
-                .or(`name.ilike.%${term}%,category.ilike.%${term}%`)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            return data || [];
-        }
-
-        // Mock mode
-        const lowerTerm = term.toLowerCase();
-        return mockStorage.stores.filter(s =>
-            s.name.toLowerCase().includes(lowerTerm) ||
-            s.category.toLowerCase().includes(lowerTerm)
-        );
-    },
-
-    // Get statistics
-    async getStats() {
-        const stores = await this.getStores();
         return {
-            totalQR: stores.length,
-            totalScans: stores.reduce((sum, s) => sum + (s.scans || 0), 0),
-            totalViews: stores.reduce((sum, s) => sum + (s.views || 0), 0),
-            categories: 8
+            ...data,
+            scans: data.stats?.[0]?.total_scans || 0,
+            views: data.stats?.[0]?.total_views || 0,
+            qr_id: data.qr_code?.[0]?.id,
+            qr_content: data.qr_code?.[0]?.qr_content,
+            stats: undefined,
+            qr_code: undefined
         };
+    },
+
+    async searchShops(term) {
+        const { data, error } = await supabase
+            .from('shops')
+            .select(`
+                *,
+                category:categories(*),
+                stats:shop_stats(total_scans, total_views)
+            `)
+            .eq('is_active', true)
+            .or(`name.ilike.%${term}%,description.ilike.%${term}%`)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return (data || []).map(shop => ({
+            ...shop,
+            scans: shop.stats?.[0]?.total_scans || 0,
+            views: shop.stats?.[0]?.total_views || 0,
+            stats: undefined
+        }));
+    },
+
+    // ================
+    // CREATE SHOP WITH QR
+    // ================
+    async createShop(shopData) {
+        // Use the database function for atomic creation
+        const { data, error } = await supabase
+            .rpc('create_shop_with_qr', {
+                p_name: shopData.name,
+                p_link: shopData.link,
+                p_category_id: shopData.category,
+                p_description: shopData.description || null
+            });
+
+        if (error) throw error;
+
+        const result = data[0];
+
+        // Fetch the created shop
+        return await this.getShop(result.shop_id);
+    },
+
+    // ================
+    // RECORD SCAN (Cloud)
+    // ================
+    async recordScan(qrCodeId, shopId, metadata = {}) {
+        const { data, error } = await supabase
+            .rpc('record_scan', {
+                p_qr_code_id: qrCodeId,
+                p_shop_id: shopId,
+                p_source: metadata.source || 'app',
+                p_ip_hash: metadata.ipHash || null,
+                p_user_agent: metadata.userAgent || null
+            });
+
+        if (error) throw error;
+        return data; // Returns scan ID
+    },
+
+    // ================
+    // RECORD VIEW (Cloud)
+    // ================
+    async recordView(shopId, metadata = {}) {
+        const { data, error } = await supabase
+            .rpc('record_view', {
+                p_shop_id: shopId,
+                p_source: metadata.source || 'app',
+                p_ip_hash: metadata.ipHash || null,
+                p_user_agent: metadata.userAgent || null
+            });
+
+        if (error) throw error;
+        return data; // Returns view ID
+    },
+
+    // ================
+    // STATISTICS (Cloud)
+    // ================
+    async getGlobalStats() {
+        const { data, error } = await supabase
+            .rpc('get_global_stats');
+
+        if (error) throw error;
+
+        const stats = data[0] || {};
+        return {
+            totalShops: parseInt(stats.total_shops) || 0,
+            totalQRCodes: parseInt(stats.total_qr_codes) || 0,
+            totalScans: parseInt(stats.total_scans) || 0,
+            totalViews: parseInt(stats.total_views) || 0,
+            totalCategories: parseInt(stats.total_categories) || 0
+        };
+    },
+
+    async getShopStats(shopId) {
+        const { data, error } = await supabase
+            .from('shop_stats')
+            .select('*')
+            .eq('shop_id', shopId)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
+        return data || { total_scans: 0, total_views: 0 };
+    },
+
+    // ================
+    // QR CODES
+    // ================
+    async getQRCode(id) {
+        const { data, error } = await supabase
+            .from('qr_codes')
+            .select(`
+                *,
+                shop:shops(*)
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
+    },
+
+    async getQRCodeByShop(shopId) {
+        const { data, error } = await supabase
+            .from('qr_codes')
+            .select('*')
+            .eq('shop_id', shopId)
+            .eq('is_active', true)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
     }
 };
 

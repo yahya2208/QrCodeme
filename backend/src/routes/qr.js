@@ -1,6 +1,6 @@
 /**
  * QR NEXUS - QR Code API Routes
- * Handles QR code generation and resolution
+ * All operations are cloud-based
  */
 
 const express = require('express');
@@ -9,29 +9,47 @@ const { db } = require('../config/supabase');
 
 /**
  * GET /api/qr/resolve/:id
- * Resolve a QR code to get store information
- * Used when scanning internal QR codes
+ * Resolve a QR code to get shop information (cloud)
  */
 router.get('/resolve/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const store = await db.getStore(id);
 
-        if (!store) {
+        // Try to find shop by ID
+        let shop = await db.getShop(id);
+
+        // If not found, try as QR code ID
+        if (!shop) {
+            const qrCode = await db.getQRCode(id);
+            if (qrCode && qrCode.shop) {
+                shop = qrCode.shop;
+            }
+        }
+
+        if (!shop) {
             return res.json({
                 success: true,
                 isInternal: false,
-                message: 'Not a QR NEXUS code'
+                message: 'Not a QR NEXUS code',
+                source: 'cloud'
             });
         }
 
-        // Increment scan count
-        await db.incrementScan(id);
+        // Record scan in cloud
+        const qrCode = await db.getQRCodeByShop(shop.id);
+        if (qrCode) {
+            await db.recordScan(qrCode.id, shop.id, {
+                source: 'scan',
+                ipHash: req.ip ? require('crypto').createHash('sha256').update(req.ip).digest('hex').substring(0, 16) : null,
+                userAgent: req.get('User-Agent')?.substring(0, 200)
+            });
+        }
 
         res.json({
             success: true,
             isInternal: true,
-            data: store
+            data: shop,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -40,14 +58,12 @@ router.get('/resolve/:id', async (req, res, next) => {
 
 /**
  * POST /api/qr/generate
- * Generate QR code data for a new store
- * Returns the store ID to be encoded in QR
+ * Generate QR code for new shop (cloud)
  */
 router.post('/generate', async (req, res, next) => {
     try {
-        const { name, link, category } = req.body;
+        const { name, link, category, description } = req.body;
 
-        // Validation is handled by stores route
         if (!name || !link || !category) {
             return res.status(400).json({
                 success: false,
@@ -55,21 +71,49 @@ router.post('/generate', async (req, res, next) => {
             });
         }
 
-        // Create store
-        const store = await db.createStore({
+        // Create shop with QR in cloud
+        const shop = await db.createShop({
             name: name.trim(),
             link: link.trim(),
-            category
+            category,
+            description: description?.trim()
         });
 
-        // Return QR data
         res.status(201).json({
             success: true,
             data: {
-                storeId: store.id,
-                qrContent: `qrnexus://${store.id}`,
-                store: store
-            }
+                shopId: shop.id,
+                qrId: shop.qr_id,
+                qrContent: shop.qr_content || `qrnexus://${shop.id}`,
+                shop: shop
+            },
+            source: 'cloud'
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /api/qr/:id
+ * Get QR code details (cloud)
+ */
+router.get('/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const qrCode = await db.getQRCode(id);
+
+        if (!qrCode) {
+            return res.status(404).json({
+                success: false,
+                error: 'QR code not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: qrCode,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);

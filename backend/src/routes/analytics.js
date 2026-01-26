@@ -1,6 +1,6 @@
 /**
  * QR NEXUS - Analytics API Routes
- * Handles statistics and analytics
+ * All statistics from cloud (Supabase)
  */
 
 const express = require('express');
@@ -9,46 +9,16 @@ const { db } = require('../config/supabase');
 
 /**
  * GET /api/analytics/stats
- * Get global statistics
+ * Get global statistics (cloud)
  */
 router.get('/stats', async (req, res, next) => {
     try {
-        const stats = await db.getStats();
+        const stats = await db.getGlobalStats();
 
         res.json({
             success: true,
-            data: stats
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
- * GET /api/analytics/store/:id
- * Get analytics for a specific store
- */
-router.get('/store/:id', async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const store = await db.getStore(id);
-
-        if (!store) {
-            return res.status(404).json({
-                success: false,
-                error: 'Store not found'
-            });
-        }
-
-        res.json({
-            success: true,
-            data: {
-                storeId: store.id,
-                name: store.name,
-                scans: store.scans || 0,
-                views: store.views || 0,
-                created_at: store.created_at
-            }
+            data: stats,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -57,30 +27,53 @@ router.get('/store/:id', async (req, res, next) => {
 
 /**
  * GET /api/analytics/categories
- * Get statistics by category
+ * Get all categories (cloud)
  */
 router.get('/categories', async (req, res, next) => {
     try {
-        const stores = await db.getStores();
-
-        // Group by category
-        const categoryStats = {};
-        stores.forEach(store => {
-            if (!categoryStats[store.category]) {
-                categoryStats[store.category] = {
-                    count: 0,
-                    totalScans: 0,
-                    totalViews: 0
-                };
-            }
-            categoryStats[store.category].count++;
-            categoryStats[store.category].totalScans += store.scans || 0;
-            categoryStats[store.category].totalViews += store.views || 0;
-        });
+        const categories = await db.getCategories();
 
         res.json({
             success: true,
-            data: categoryStats
+            data: categories,
+            source: 'cloud'
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /api/analytics/shop/:id
+ * Get analytics for a specific shop (cloud)
+ */
+router.get('/shop/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const shop = await db.getShop(id);
+
+        if (!shop) {
+            return res.status(404).json({
+                success: false,
+                error: 'Shop not found'
+            });
+        }
+
+        const stats = await db.getShopStats(id);
+
+        res.json({
+            success: true,
+            data: {
+                shopId: shop.id,
+                name: shop.name,
+                category: shop.category,
+                totalScans: stats.total_scans || 0,
+                totalViews: stats.total_views || 0,
+                lastScanAt: stats.last_scan_at,
+                lastViewAt: stats.last_view_at,
+                createdAt: shop.created_at
+            },
+            source: 'cloud'
         });
     } catch (error) {
         next(error);

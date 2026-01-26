@@ -1,0 +1,18 @@
+{
+    "name": "qr-nexus",
+    "version": "1.0.0",
+    "description": "QR NEXUS - Smart Discovery Platform",
+    "scripts": {
+        "start:backend": "cd backend && npm run dev",
+        "start:frontend": "npx serve . -p 3000",
+        "start": "echo Use 'npm run start:backend' and 'npm run start:frontend' in separate terminals",
+        "install:all": "cd backend && npm install"
+    },
+    "keywords": [
+        "qr",
+        "discovery",
+        "platform"
+    ],
+    "author": "QR NEXUS Team",
+    "license": "MIT"
+}

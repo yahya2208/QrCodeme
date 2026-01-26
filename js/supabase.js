@@ -1,14 +1,12 @@
 // QR NEXUS - API Client
 // Connects frontend to backend API (NOT directly to Supabase)
+// ALL DATA IS CLOUD-BASED - No localStorage
 
 class APIClient {
     constructor() {
-        // Backend API URL - change in production
         this.baseURL = 'http://localhost:3001/api';
-        this.isOnline = true;
     }
 
-    // Generic fetch wrapper with error handling
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
 
@@ -20,34 +18,20 @@ class APIClient {
             ...options
         };
 
-        try {
-            const response = await fetch(url, config);
-            const data = await response.json();
+        const response = await fetch(url, config);
+        const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Request failed');
-            }
-
-            return data;
-        } catch (error) {
-            console.error(`API Error [${endpoint}]:`, error.message);
-
-            // If server is down, switch to offline mode
-            if (error.message.includes('Failed to fetch')) {
-                this.isOnline = false;
-                console.warn('⚠️ Backend offline - using local storage');
-            }
-
-            throw error;
+        if (!response.ok) {
+            throw new Error(data.error || 'Request failed');
         }
+
+        return data;
     }
 
-    // GET request
     async get(endpoint) {
         return this.request(endpoint, { method: 'GET' });
     }
 
-    // POST request
     async post(endpoint, data) {
         return this.request(endpoint, {
             method: 'POST',
@@ -56,180 +40,109 @@ class APIClient {
     }
 }
 
-// Database layer using API client with localStorage fallback
+// Database layer - Cloud only, no fallback
 class Database {
     constructor() {
         this.api = new APIClient();
-        this.useLocalFallback = false;
+        this.isConnected = false;
     }
 
     async init() {
-        // Check if backend is available
         try {
-            await this.api.get('/health');
-            console.log('✅ Backend API connected');
-            this.useLocalFallback = false;
-        } catch {
-            console.warn('⚠️ Backend unavailable - using localStorage');
-            this.useLocalFallback = true;
+            const response = await this.api.get('/health');
+            this.isConnected = response.success;
+            console.log('✅ Connected to cloud backend');
+        } catch (error) {
+            console.error('❌ Backend connection failed:', error.message);
+            this.isConnected = false;
         }
         return this;
     }
 
-    // Get all stores
+    // Get all shops (cloud)
     async getStores(category = 'all') {
-        if (this.useLocalFallback) {
-            return this._getLocalStores(category);
-        }
-
         try {
-            const response = await this.api.get(`/stores?category=${category}`);
+            const endpoint = category === 'all'
+                ? '/shops'
+                : `/shops?category=${category}`;
+            const response = await this.api.get(endpoint);
             return response.data || [];
-        } catch {
-            return this._getLocalStores(category);
+        } catch (error) {
+            console.error('Failed to get shops:', error);
+            return [];
         }
     }
 
-    // Search stores
+    // Search shops (cloud)
     async searchStores(term) {
-        if (this.useLocalFallback) {
-            const stores = this._getLocalStores();
-            const lowerTerm = term.toLowerCase();
-            return stores.filter(s =>
-                s.name.toLowerCase().includes(lowerTerm) ||
-                s.category.toLowerCase().includes(lowerTerm)
-            );
-        }
-
         try {
-            const response = await this.api.get(`/stores/search?q=${encodeURIComponent(term)}`);
+            const response = await this.api.get(`/shops/search?q=${encodeURIComponent(term)}`);
             return response.data || [];
         } catch {
             return [];
         }
     }
 
-    // Get store by ID
+    // Get shop by ID (cloud)
     async getStore(id) {
-        if (this.useLocalFallback) {
-            const stores = this._getLocalStores();
-            return stores.find(s => s.id === id) || null;
-        }
-
         try {
-            const response = await this.api.get(`/stores/${id}`);
+            const response = await this.api.get(`/shops/${id}`);
             return response.data;
         } catch {
             return null;
         }
     }
 
-    // Create store
+    // Create shop with QR (cloud)
     async createStore(storeData) {
-        if (this.useLocalFallback) {
-            return this._createLocalStore(storeData);
-        }
-
         try {
             const response = await this.api.post('/qr/generate', storeData);
-            return response.data.store;
-        } catch {
-            return this._createLocalStore(storeData);
+            return response.data.shop || response.data;
+        } catch (error) {
+            console.error('Failed to create shop:', error);
+            throw error;
         }
     }
 
-    // Increment scan count
+    // Record scan (cloud)
     async incrementScan(id) {
-        if (this.useLocalFallback) {
-            this._incrementLocalStat(id, 'scans');
-            return;
-        }
-
         try {
-            await this.api.post(`/stores/${id}/scan`);
-        } catch {
-            this._incrementLocalStat(id, 'scans');
+            await this.api.post(`/shops/${id}/scan`, { source: 'web' });
+        } catch (error) {
+            console.error('Failed to record scan:', error);
         }
     }
 
-    // Increment view count
+    // Record view (cloud)
     async incrementView(id) {
-        if (this.useLocalFallback) {
-            this._incrementLocalStat(id, 'views');
-            return;
-        }
-
         try {
-            await this.api.post(`/stores/${id}/view`);
-        } catch {
-            this._incrementLocalStat(id, 'views');
+            await this.api.post(`/shops/${id}/view`, { source: 'web' });
+        } catch (error) {
+            console.error('Failed to record view:', error);
         }
     }
 
-    // Get stats
+    // Get global stats (cloud)
     async getStats() {
-        if (this.useLocalFallback) {
-            const stores = this._getLocalStores();
-            return {
-                totalQR: stores.length,
-                totalScans: stores.reduce((sum, s) => sum + (s.scans || 0), 0),
-                categories: 8
-            };
-        }
-
         try {
             const response = await this.api.get('/analytics/stats');
-            return response.data;
+            return {
+                totalQR: response.data.totalQRCodes || 0,
+                totalScans: response.data.totalScans || 0,
+                categories: response.data.totalCategories || 8
+            };
         } catch {
             return { totalQR: 0, totalScans: 0, categories: 8 };
         }
     }
 
-    // ================
-    // LOCAL STORAGE FALLBACK
-    // ================
-
-    _generateId() {
-        return 'qr_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-    }
-
-    _getLocalStores(category = 'all') {
+    // Get categories (cloud)
+    async getCategories() {
         try {
-            const stores = JSON.parse(localStorage.getItem('qr_nexus_stores') || '[]');
-            if (category === 'all') return stores;
-            return stores.filter(s => s.category === category);
+            const response = await this.api.get('/analytics/categories');
+            return response.data || [];
         } catch {
             return [];
-        }
-    }
-
-    _setLocalStores(stores) {
-        localStorage.setItem('qr_nexus_stores', JSON.stringify(stores));
-    }
-
-    _createLocalStore(storeData) {
-        const store = {
-            id: this._generateId(),
-            name: storeData.name,
-            link: storeData.link,
-            category: storeData.category,
-            scans: 0,
-            views: 0,
-            created_at: new Date().toISOString()
-        };
-
-        const stores = this._getLocalStores();
-        stores.unshift(store);
-        this._setLocalStores(stores);
-        return store;
-    }
-
-    _incrementLocalStat(id, field) {
-        const stores = this._getLocalStores();
-        const store = stores.find(s => s.id === id);
-        if (store) {
-            store[field] = (store[field] || 0) + 1;
-            this._setLocalStores(stores);
         }
     }
 }

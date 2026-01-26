@@ -1,40 +1,26 @@
 /**
- * QR NEXUS - Stores API Routes
- * Handles all store-related operations
+ * QR NEXUS - Shops API Routes
+ * All operations are cloud-based (Supabase)
  */
 
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/supabase');
 
-// Categories list
-const VALID_CATEGORIES = [
-    'pharmacy', 'phones', 'restaurant', 'cafe',
-    'maintenance', 'fashion', 'services', 'other'
-];
-
 /**
- * GET /api/stores
- * Get all stores, optionally filtered by category
+ * GET /api/shops
+ * Get all shops (cloud)
  */
 router.get('/', async (req, res, next) => {
     try {
-        const { category = 'all' } = req.query;
-
-        // Validate category
-        if (category !== 'all' && !VALID_CATEGORIES.includes(category)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Invalid category'
-            });
-        }
-
-        const stores = await db.getStores(category);
+        const { category } = req.query;
+        const shops = await db.getShops(category);
 
         res.json({
             success: true,
-            data: stores,
-            count: stores.length
+            data: shops,
+            count: shops.length,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -42,8 +28,8 @@ router.get('/', async (req, res, next) => {
 });
 
 /**
- * GET /api/stores/search
- * Search stores by name or category
+ * GET /api/shops/search
+ * Search shops (cloud)
  */
 router.get('/search', async (req, res, next) => {
     try {
@@ -56,12 +42,13 @@ router.get('/search', async (req, res, next) => {
             });
         }
 
-        const stores = await db.searchStores(q.trim());
+        const shops = await db.searchShops(q.trim());
 
         res.json({
             success: true,
-            data: stores,
-            count: stores.length
+            data: shops,
+            count: shops.length,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -69,24 +56,25 @@ router.get('/search', async (req, res, next) => {
 });
 
 /**
- * GET /api/stores/:id
- * Get single store by ID
+ * GET /api/shops/:id
+ * Get single shop (cloud)
  */
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const store = await db.getStore(id);
+        const shop = await db.getShop(id);
 
-        if (!store) {
+        if (!shop) {
             return res.status(404).json({
                 success: false,
-                error: 'Store not found'
+                error: 'Shop not found'
             });
         }
 
         res.json({
             success: true,
-            data: store
+            data: shop,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -94,12 +82,12 @@ router.get('/:id', async (req, res, next) => {
 });
 
 /**
- * POST /api/stores
- * Create new store
+ * POST /api/shops
+ * Create new shop with QR (cloud)
  */
 router.post('/', async (req, res, next) => {
     try {
-        const { name, link, category } = req.body;
+        const { name, link, category, description } = req.body;
 
         // Validation
         if (!name || !link || !category) {
@@ -126,23 +114,19 @@ router.post('/', async (req, res, next) => {
             });
         }
 
-        if (!VALID_CATEGORIES.includes(category)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Invalid category'
-            });
-        }
-
-        const store = await db.createStore({
+        // Create shop in cloud
+        const shop = await db.createShop({
             name: name.trim(),
             link: link.trim(),
-            category
+            category,
+            description: description?.trim()
         });
 
         res.status(201).json({
             success: true,
-            data: store,
-            message: 'Store created successfully'
+            data: shop,
+            message: 'Shop created successfully in cloud',
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -150,26 +134,33 @@ router.post('/', async (req, res, next) => {
 });
 
 /**
- * POST /api/stores/:id/view
- * Increment view count for a store
+ * POST /api/shops/:id/view
+ * Record view in cloud
  */
 router.post('/:id/view', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const store = await db.getStore(id);
+        const shop = await db.getShop(id);
 
-        if (!store) {
+        if (!shop) {
             return res.status(404).json({
                 success: false,
-                error: 'Store not found'
+                error: 'Shop not found'
             });
         }
 
-        await db.incrementView(id);
+        // Record view in cloud with metadata
+        const viewId = await db.recordView(id, {
+            source: req.body.source || 'web',
+            ipHash: req.ip ? require('crypto').createHash('sha256').update(req.ip).digest('hex').substring(0, 16) : null,
+            userAgent: req.get('User-Agent')?.substring(0, 200)
+        });
 
         res.json({
             success: true,
-            message: 'View recorded'
+            message: 'View recorded in cloud',
+            viewId,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
@@ -177,26 +168,43 @@ router.post('/:id/view', async (req, res, next) => {
 });
 
 /**
- * POST /api/stores/:id/scan
- * Increment scan count for a store
+ * POST /api/shops/:id/scan
+ * Record scan in cloud
  */
 router.post('/:id/scan', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const store = await db.getStore(id);
+        const shop = await db.getShop(id);
 
-        if (!store) {
+        if (!shop) {
             return res.status(404).json({
                 success: false,
-                error: 'Store not found'
+                error: 'Shop not found'
             });
         }
 
-        await db.incrementScan(id);
+        // Get QR code for this shop
+        const qrCode = await db.getQRCodeByShop(id);
+
+        if (!qrCode) {
+            return res.status(404).json({
+                success: false,
+                error: 'QR code not found for this shop'
+            });
+        }
+
+        // Record scan in cloud with metadata
+        const scanId = await db.recordScan(qrCode.id, id, {
+            source: req.body.source || 'app',
+            ipHash: req.ip ? require('crypto').createHash('sha256').update(req.ip).digest('hex').substring(0, 16) : null,
+            userAgent: req.get('User-Agent')?.substring(0, 200)
+        });
 
         res.json({
             success: true,
-            message: 'Scan recorded'
+            message: 'Scan recorded in cloud',
+            scanId,
+            source: 'cloud'
         });
     } catch (error) {
         next(error);
