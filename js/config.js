@@ -1,55 +1,26 @@
-// QR NEXUS - Frontend Configuration
-// No sensitive keys here - all handled by backend
-
-const getHost = () => {
-    // Check if we are running in a local file or local server
-    const host = window.location.hostname;
-    if (!host || host === 'localhost' || host === '127.0.0.1') {
-        return 'localhost'; // Default to localhost for local dev
-    }
-    return host;
-};
+// QR NEXUS - GLOBAL CONFIG V5
+// Security Note: Real keys should be in .env for production
 
 const CONFIG = {
-    // Backend API URL - use current host to support network discovery
-    API_URL: `http://${getHost()}:3001/api`,
-    WEB_URL: window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin,
+    // SUPABASE CONFIG (User: Update these in your dashboard)
+    SUPABASE_URL: 'https://fhyjymjgojttbqfsrlvr.supabase.co',
+    // 🛡️ SUPABASE_KEY removed - All operations now go through the Backend Gateway
+    // to maintain Zero-Trust Architecture.
 
-    // App Settings
-    APP_NAME: 'Qr Id',
-    APP_VERSION: '1.0.0',
+    // APP SETTINGS
+    VERSION: '5.0.0-PRO',
+    DEFAULT_LANG: 'ar',
 
-    // Categories (for UI only)
-    CATEGORIES: {
-        all: { name: 'الكل', icon: '🌟' },
-        pharmacy: { name: 'صيدلية', icon: '💊' },
-        phones: { name: 'هواتف', icon: '📱' },
-        restaurant: { name: 'مطعم', icon: '🍽️' },
-        cafe: { name: 'مقهى', icon: '☕' },
-        maintenance: { name: 'صيانة', icon: '🔧' },
-        fashion: { name: 'أزياء', icon: '👔' },
-        services: { name: 'خدمات', icon: '⚡' },
-        other: { name: 'أخرى', icon: '🏪' }
-    },
-
-    // Animation Timings
-    ANIMATION: {
-        LOADER_DURATION: 2500,
-        PAGE_TRANSITION: 500,
-        MODAL_TRANSITION: 400,
-        RIPPLE_DURATION: 600
-    },
-
-    // QR Settings
-    QR: {
-        SIZE: 200,
-        COLOR_DARK: '#0a0a0a',
-        COLOR_LIGHT: '#ffffff',
-        CORRECTION_LEVEL: 'H'
+    // THEME
+    COLORS: {
+        NEON_YELLOW: '#f0ff42',
+        BG_VOID: '#050505'
     }
 };
 
-// Freeze config (careful with dynamic objects)
-Object.freeze(CONFIG.CATEGORIES);
-Object.freeze(CONFIG.ANIMATION);
-Object.freeze(CONFIG.QR);
+// Global Helper
+const isRTL = () => document.documentElement.dir === 'rtl';
+function getT(key) {
+    if (typeof i18n !== 'undefined') return i18n.t(key);
+    return key;
+}

@@ -149,19 +149,44 @@ const db = {
     async createShop(shopData) {
         // Use the database function for atomic creation
         const { data, error } = await supabase
-            .rpc('create_shop_with_qr', {
+            .rpc('create_shop_with_qr_v2', {
                 p_name: shopData.name,
                 p_link: shopData.link,
                 p_category_id: shopData.category,
+                p_identity_id: shopData.identityId,
                 p_description: shopData.description || null
             });
 
-        if (error) throw error;
+        if (error) {
+            console.error('RPC Error:', error);
+            // Fallback to old version if v2 not yet migrated
+            const { data: oldData, error: oldError } = await supabase
+                .rpc('create_shop_with_qr', {
+                    p_name: shopData.name,
+                    p_link: shopData.link,
+                    p_category_id: shopData.category,
+                    p_description: shopData.description || null
+                });
+            if (oldError) throw oldError;
+            return await this.getShop(oldData[0].shop_id);
+        }
 
         const result = data[0];
-
-        // Fetch the created shop
         return await this.getShop(result.shop_id);
+    },
+
+    async getNexusIdentityWithShops(id) {
+        const { data, error } = await supabase
+            .from('nexus_identities')
+            .select(`
+                *,
+                shops:shops(*)
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        return data;
     },
 
     // ================

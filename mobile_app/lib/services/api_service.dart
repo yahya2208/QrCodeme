@@ -123,5 +123,19 @@ class ApiService {
       throw Exception('Failed to update identity: ${response.statusCode}');
     }
   }
+
+  // REFERRAL & POINTS
+  Future<Map<String, dynamic>> getUserPoints(String userId) async {
+    final result = await _get('/referral/points/$userId');
+    return result['data'];
+  }
+
+  Future<Map<String, dynamic>> awardSharePoints(String userId, String channel) async {
+    final result = await _post('/referral/share', {
+      'userId': userId,
+      'channel': channel,
+    });
+    return result['data'];
+  }
 }
 

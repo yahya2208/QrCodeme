@@ -1,152 +1,112 @@
-// QR NEXUS - API Client
-// Connects frontend to backend API (NOT directly to Supabase)
-// ALL DATA IS CLOUD-BASED - No localStorage
+// QRme - SECURE GATEWAY CLIENT V7
+// 🛡️ ZERO-TRUST ARCHITECTURE
+// All database and auth operations are proxied through the backend server.
+// Direct Supabase interaction is strictly forbidden.
 
-class APIClient {
-    constructor() {
-        // Use the global config if available, otherwise fallback
-        this.baseURL = (typeof CONFIG !== 'undefined') ? CONFIG.API_URL : 'http://localhost:3001/api';
-    }
+const API_BASE = 'http://localhost:3001/api';
 
-    async request(endpoint, options = {}) {
-        const url = `${this.baseURL}${endpoint}`;
+/**
+ * Custom Supabase Client Mock
+ * Proxies auth methods to the backend.
+ */
+const supabaseClient = {
+    auth: {
+        async getUser() {
+            const session = this.getSessionFromStorage();
+            if (!session) return { data: { user: null }, error: null };
 
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        };
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                const result = await response.json();
+                if (result.success) return { data: { user: result.data.user }, error: null };
+                return { data: { user: null }, error: result.error };
+            } catch (err) {
+                return { data: { user: null }, error: err.message };
+            }
+        },
 
-        const response = await fetch(url, config);
-        const data = await response.json();
+        async getSession() {
+            const session = this.getSessionFromStorage();
+            return { data: { session }, error: null };
+        },
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Request failed');
-        }
+        async signInWithPassword({ email, password }) {
+            console.log('[DEBUG] Sending login request for:', email);
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                console.log('[DEBUG] Login response status:', response.status);
+                const result = await response.json();
+                if (result.success) {
+                    this.saveSession(result.data.session);
+                    return { data: result.data, error: null };
+                }
+                console.error('[DEBUG] Login failed with error:', result.error);
+                return { data: { user: null, session: null }, error: { message: result.error } };
+            } catch (err) {
+                return { data: { user: null, session: null }, error: err };
+            }
+        },
 
-        return data;
-    }
+        async signUp({ email, password, options }) {
+            const fullName = options?.data?.full_name || 'User';
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, full_name: fullName })
+                });
+                const result = await response.json();
+                if (result.success) return { data: result.data, error: null };
+                return { data: { user: null, session: null }, error: { message: result.error } };
+            } catch (err) {
+                return { data: { user: null, session: null }, error: err };
+            }
+        },
 
-    async get(endpoint) {
-        return this.request(endpoint, { method: 'GET' });
-    }
+        async resend({ type, email }) {
+            try {
+                const response = await fetch(`${API_BASE}/auth/resend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, type })
+                });
+                const result = await response.json();
+                if (result.success) return { data: result.data, error: null };
+                return { data: null, error: { message: result.error } };
+            } catch (err) {
+                return { data: null, error: err };
+            }
+        },
 
-    async post(endpoint, data) {
-        return this.request(endpoint, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
-}
+        async signOut() {
+            localStorage.removeItem('qrme_session');
+            return { error: null };
+        },
 
-// Database layer - Cloud only, no fallback
-class Database {
-    constructor() {
-        this.api = new APIClient();
-        this.isConnected = false;
-    }
+        onAuthStateChange(callback) {
+            // Basic emulation for state changes
+            // In a real app, you'd use a more robust event emitter
+            const session = this.getSessionFromStorage();
+            if (session) callback('SIGNED_IN', session);
+        },
 
-    async init() {
-        try {
-            const response = await this.api.get('/health');
-            this.isConnected = response.success;
-            console.log('✅ Connected to cloud backend');
-        } catch (error) {
-            console.error('❌ Backend connection failed:', error.message);
-            this.isConnected = false;
-        }
-        return this;
-    }
+        // Helper methods
+        saveSession(session) {
+            if (session) localStorage.setItem('qrme_session', JSON.stringify(session));
+        },
 
-    // Get all shops (cloud)
-    async getStores(category = 'all') {
-        try {
-            const endpoint = category === 'all'
-                ? '/shops'
-                : `/shops?category=${category}`;
-            const response = await this.api.get(endpoint);
-            return response.data || [];
-        } catch (error) {
-            console.error('Failed to get shops:', error);
-            return [];
-        }
-    }
-
-    // Search shops (cloud)
-    async searchStores(term) {
-        try {
-            const response = await this.api.get(`/shops/search?q=${encodeURIComponent(term)}`);
-            return response.data || [];
-        } catch {
-            return [];
-        }
-    }
-
-    // Get shop by ID (cloud)
-    async getStore(id) {
-        try {
-            const response = await this.api.get(`/shops/${id}`);
-            return response.data;
-        } catch {
-            return null;
-        }
-    }
-
-    // Create shop with QR (cloud)
-    async createStore(storeData) {
-        try {
-            const response = await this.api.post('/qr/generate', storeData);
-            return response.data.shop || response.data;
-        } catch (error) {
-            console.error('Failed to create shop:', error);
-            throw error;
-        }
-    }
-
-    // Record scan (cloud)
-    async incrementScan(id) {
-        try {
-            await this.api.post(`/shops/${id}/scan`, { source: 'web' });
-        } catch (error) {
-            console.error('Failed to record scan:', error);
+        getSessionFromStorage() {
+            const s = localStorage.getItem('qrme_session');
+            return s ? JSON.parse(s) : null;
         }
     }
+};
 
-    // Record view (cloud)
-    async incrementView(id) {
-        try {
-            await this.api.post(`/shops/${id}/view`, { source: 'web' });
-        } catch (error) {
-            console.error('Failed to record view:', error);
-        }
-    }
-
-    // Get global stats (cloud)
-    async getStats() {
-        try {
-            const response = await this.api.get('/analytics/stats');
-            return {
-                totalQR: response.data.totalQRCodes || 0,
-                totalScans: response.data.totalScans || 0,
-                categories: response.data.totalCategories || 8
-            };
-        } catch {
-            return { totalQR: 0, totalScans: 0, categories: 8 };
-        }
-    }
-
-    // Get categories (cloud)
-    async getCategories() {
-        try {
-            const response = await this.api.get('/analytics/categories');
-            return response.data || [];
-        } catch {
-            return [];
-        }
-    }
-}
-
-// Export instance
-const db = new Database();
+// Compatibility export
+const db = supabaseClient.auth;

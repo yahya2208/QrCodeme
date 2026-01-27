@@ -3,10 +3,11 @@
     "version": "1.0.0",
     "description": "QR NEXUS - Smart Discovery Platform",
     "scripts": {
+        "dev": "npx concurrently \"npm run start:backend\" \"npm run start:frontend\"",
         "start:backend": "cd backend && npm run dev",
         "start:frontend": "npx serve . -p 3000",
-        "start": "echo Use 'npm run start:backend' and 'npm run start:frontend' in separate terminals",
-        "install:all": "cd backend && npm install"
+        "start": "npm run dev",
+        "install:all": "npm install && cd backend && npm install"
     },
     "keywords": [
         "qr",
@@ -14,5 +15,9 @@
         "platform"
     ],
     "author": "QR NEXUS Team",
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^9.2.1",
+        "serve": "^14.2.5"
+    }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+/// Shop Details Modal - QR-CENTRIC DESIGN
+/// NO DIRECT LINKS - Only shows QR Code
 class ShopDetailsModal extends StatelessWidget {
   final Shop shop;
   final ApiService _api = ApiService();
@@ -71,48 +73,61 @@ class ShopDetailsModal extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // QR Code
+          // QR Code - CENTRAL FEATURE (NO DIRECT LINKS)
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.yellowWarm.withOpacity(0.3),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
             ),
             child: QrImageView(
-              data: 'qrnexus://${shop.id}',
+              data: shop.link, // The actual link encoded in QR
               version: QrVersions.auto,
-              size: 150.0,
+              size: 200.0,
               gapless: false,
+              backgroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Instruction (NO "Visit Site" button - QR only paradigm)
+          Text(
+            'امسح الكود باستخدام كاميرا الهاتف',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: AppColors.greyMedium,
             ),
           ),
           const SizedBox(height: 32),
 
-          // Actions
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _launchURL(shop.link),
-                  icon: const Icon(Icons.open_in_new),
-                  label: const Text('زيارة الموقع'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
+          // Download QR Button only (no visit site)
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.blackCarbon,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.yellowWarm.withOpacity(0.3)),
+            ),
+            child: TextButton.icon(
+              onPressed: () {
+                // TODO: Save QR to gallery
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('جاري الحفظ...')),
+                );
+              },
+              icon: const Icon(Icons.download, color: AppColors.yellowWarm),
+              label: Text(
+                'حفظ الكود',
+                style: GoogleFonts.outfit(color: AppColors.yellowWarm),
               ),
-              const SizedBox(width: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.blackCarbon,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.blackCharcoal),
-                ),
-                child: IconButton(
-                  onPressed: () {}, // TODO: Save QR
-                  icon: const Icon(Icons.download, color: AppColors.yellowWarm),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -147,12 +162,5 @@ class ShopDetailsModal extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri)) {
-      throw Exception('Could not launch $url');
-    }
   }
 }

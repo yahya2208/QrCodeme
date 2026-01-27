@@ -1,50 +1,71 @@
-/**
- * QR NEXUS - NEXUS ID API Routes
- * Secure Cloud Gateway to Digital Identities
- */
-
 const express = require('express');
 const router = express.Router();
-const { supabase } = require('../config/supabase'); // Using direct supabase from config
+const { supabase, db } = require('../config/supabase');
+
+/**
+ * GET /api/nexus/discovery
+ * Fetches public identities for the exploration corridor
+ */
+router.get('/discovery', async (req, res, next) => {
+    try {
+        const { data, error } = await supabase.rpc('get_public_hub', { p_limit: 20 });
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /api/nexus/my/:ownerId
+ * Fetches the specific personal identity of a user
+ */
+router.get('/my/:ownerId', async (req, res, next) => {
+    try {
+        const { ownerId } = req.params;
+        const { data: identity, error } = await supabase
+            .from('nexus_identities')
+            .select('*')
+            .eq('owner_id', ownerId)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
+        if (identity) {
+            const shops = await db.getShopsByIdentity(identity.id);
+            return res.json({ success: true, data: { ...identity, shops } });
+        }
+
+        res.json({ success: true, data: null });
+    } catch (error) {
+        next(error);
+    }
+});
 
 /**
  * GET /api/nexus/:id
- * Fetches the living identity and resolves its "Pulse" intensity
+ * Fetches any identity for viewing (Public/Private handled by logic)
  */
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        // Fetch identity details
-        const { data: identity, error: idError } = await supabase
-            .from('nexus_identities')
-            .select(`
-                *,
-                links:nexus_identity_links(*)
-            `)
-            .eq('id', id)
-            .single();
+        // Fetch identity details with linked shops
+        const identity = await db.getNexusIdentityWithShops(id);
 
-        if (idError || !identity) {
+        if (!identity) {
             return res.status(404).json({ success: false, error: 'Identity not found' });
         }
 
-        // Get calculated pulse (The "Life" factor)
-        const { data: pulse, error: pulseError } = await supabase
-            .rpc('get_identity_pulse', { p_identity_id: id });
-
-        // Log scan event
-        await supabase.from('nexus_identity_scans').insert({
-            identity_id: id,
-            ip_hash: req.ip ? require('crypto').createHash('sha256').update(req.ip).digest('hex').substring(0, 16) : null,
-            user_agent: req.get('User-Agent')?.substring(0, 200)
-        });
-
-        // Log visual view
-        await supabase.from('nexus_identity_activity_log').insert({
-            identity_id: id,
-            activity_type: 'view'
-        });
+        // Get calculated pulse
+        let pulse = 1.0;
+        try {
+            const { data: pulseData, error: pulseError } = await supabase
+                .rpc('get_identity_pulse', { p_identity_id: id });
+            if (!pulseError) pulse = pulseData;
+        } catch (e) {
+            console.warn('RPC get_identity_pulse failed');
+        }
 
         res.json({
             success: true,
@@ -52,8 +73,7 @@ router.get('/:id', async (req, res, next) => {
                 ...identity,
                 pulse: pulse || 1.0,
                 temporal_status: getTemporalStatus()
-            },
-            source: 'cloud_sync'
+            }
         });
     } catch (error) {
         next(error);
@@ -62,49 +82,38 @@ router.get('/:id', async (req, res, next) => {
 
 /**
  * POST /api/nexus/create
- * Creates a unique digital identity (No login required)
+ * Creates a unique digital identity with mandatory ownership
  */
 router.post('/create', async (req, res, next) => {
     try {
-        const { displayName, profession, bio, links } = req.body;
+        const { displayName, profession, bio, ownerId } = req.body;
 
         if (!displayName) {
             return res.status(400).json({ success: false, error: 'Display name is required' });
         }
 
-        // 1. Create Identity
-        const { data: identity, error: idError } = await supabase
-            .from('nexus_identities')
-            .insert({
-                display_name: displayName,
-                profession_id: profession,
-                bio: bio
-            })
-            .select()
-            .single();
+        if (!ownerId) {
+            return res.status(400).json({ success: false, error: 'Owner ID is mandatory' });
+        }
+
+        // Use the protected RPC
+        const { data: identityId, error: idError } = await supabase
+            .rpc('create_protected_identity', {
+                p_name: displayName,
+                p_bio: bio,
+                p_profession: profession || 'other',
+                p_owner_id: ownerId
+            });
 
         if (idError) throw idError;
-
-        // 2. Add Links if provided
-        if (links && Array.isArray(links)) {
-            const formattedLinks = links.map((link, index) => ({
-                identity_id: identity.id,
-                label: link.label,
-                target_url: link.url,
-                icon_type: link.icon || 'bolt',
-                sort_order: index
-            }));
-
-            await supabase.from('nexus_identity_links').insert(formattedLinks);
-        }
 
         res.status(201).json({
             success: true,
             data: {
-                identityId: identity.id,
-                qrContent: `qrnexus://id/${identity.id}`
+                identityId,
+                qrContent: `qrnexus://id/${identityId}`
             },
-            message: 'NEXUS ID formed in the cloud'
+            message: 'NEXUS ID secured in the cloud'
         });
     } catch (error) {
         next(error);
@@ -113,14 +122,27 @@ router.post('/create', async (req, res, next) => {
 
 /**
  * PUT /api/nexus/:id
- * Updates a living identity and its nested links
+ * Updates a living identity (Ownership check enforced)
  */
 router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { displayName, bio, links } = req.body;
+        const { displayName, bio, ownerId } = req.body;
 
-        // 1. Update Identity Details
+        // Verify ownership
+        const { data: identity, error: fetchError } = await supabase
+            .from('nexus_identities')
+            .select('owner_id')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !identity) return res.status(404).json({ success: false, error: 'Identity not found' });
+
+        if (identity.owner_id && identity.owner_id !== ownerId) {
+            return res.status(403).json({ success: false, error: 'Unauthorized: Ownership mismatch' });
+        }
+
+        // Update Identity
         const { error: idError } = await supabase
             .from('nexus_identities')
             .update({
@@ -132,35 +154,9 @@ router.put('/:id', async (req, res, next) => {
 
         if (idError) throw idError;
 
-        // 2. Handle Links (Sync Approach)
-        if (links && Array.isArray(links)) {
-            // Delete existing links for this identity (Simple sync)
-            await supabase.from('nexus_identity_links').delete().eq('identity_id', id);
-
-            // Insert new links
-            const formattedLinks = links.map((link, index) => ({
-                identity_id: id,
-                label: link.label,
-                target_url: link.url,
-                icon_type: link.icon || 'bolt',
-                sort_order: index
-            }));
-
-            if (formattedLinks.length > 0) {
-                const { error: linksError } = await supabase.from('nexus_identity_links').insert(formattedLinks);
-                if (linksError) throw linksError;
-            }
-        }
-
-        // Log edit event
-        await supabase.from('nexus_identity_activity_log').insert({
-            identity_id: id,
-            activity_type: 'edit'
-        });
-
         res.json({
             success: true,
-            message: 'NEXUS ID state updated in the cloud'
+            message: 'NEXUS ID state updated'
         });
     } catch (error) {
         next(error);
@@ -168,8 +164,31 @@ router.put('/:id', async (req, res, next) => {
 });
 
 /**
- * Helper: Determine Temporal UI Status
+ * POST /api/nexus/claim-orphans
  */
+router.post('/claim-orphans', async (req, res, next) => {
+    try {
+        const { identityId, ownerId } = req.body;
+
+        // Ownership check
+        const { data: identity } = await supabase.from('nexus_identities').select('owner_id').eq('id', identityId).single();
+        if (identity && identity.owner_id !== ownerId) return res.status(403).json({ success: false });
+
+        const { data: count, error } = await supabase.rpc('claim_orphan_shops', {
+            p_identity_id: identityId
+        });
+
+        if (error) throw error;
+
+        // Also update shops with owner_id if missing
+        await supabase.from('shops').update({ owner_id: ownerId }).eq('identity_id', identityId).is('owner_id', null);
+
+        res.json({ success: true, claimed_count: count });
+    } catch (error) {
+        next(error);
+    }
+});
+
 function getTemporalStatus() {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return 'dawn';

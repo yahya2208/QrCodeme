@@ -4,637 +4,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Qr Id | منصة الاكتشاف الذكية</title>
-    <meta name="description" content="Qr Id - منصة اكتشاف ذكية لإنشاء أكواد QR والعثور على المحلات والخدمات بدون تسجيل">
-    <meta name="theme-color" content="#0a0a0a">
+    <title>QRme | هويتك الرقمية</title>
+    <meta name="theme-color" content="#030303">
 
-    <!-- Favicon & PWA -->
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <!-- Preload Critical Assets -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Cairo:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap"
         rel="stylesheet">
 
-    <!-- GSAP for Advanced Animations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/CustomEase.min.js"></script>
+    <!-- Supabase -->
+    <!-- Supabase SDK removed (Zero-Trust Architecture: Handled via Backend Gateway) -->
 
-    <!-- QR Code Library -->
+    <!-- GSAP & QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- jsQR for scanning -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-
-    <!-- Backend API: No direct database connection from frontend -->
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/animations.css">
     <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/animations.css">
 </head>
 
 <body>
-    <!-- Cinematic Loader -->
-    <div id="cinematic-loader" class="loader-overlay">
+    <!-- Loader -->
+    <div id="app-loader" class="loader-overlay">
         <div class="loader-content">
-            <div class="loader-orb">
-                <div class="orb-core"></div>
-                <div class="orb-ring ring-1"></div>
-                <div class="orb-ring ring-2"></div>
-                <div class="orb-ring ring-3"></div>
-            </div>
-            <div class="loader-text">
-                <span class="loader-letter" data-delay="0">Q</span>
-                <span class="loader-letter" data-delay="1">r</span>
-                <span class="loader-spacer"></span>
-                <span class="loader-letter" data-delay="2">I</span>
-                <span class="loader-letter" data-delay="3">d</span>
-            </div>
-            <div class="loader-tagline">منصة الاكتشاف الذكية</div>
+            <div class="loader-orb"></div>
+            <div class="loader-text">QRme</div>
         </div>
     </div>
 
-    <!-- Ambient Background -->
-    <div id="ambient-bg">
-        <canvas id="ambient-canvas"></canvas>
-        <div class="ambient-gradient"></div>
-        <div class="ambient-noise"></div>
-    </div>
+    <!-- Neural Background -->
+    <div class="neural-bg"></div>
 
-    <!-- Main Application Container -->
     <div id="app" class="app-container">
-        <!-- Navigation Header -->
-        <header id="main-header" class="header">
+        <!-- HEADER -->
+        <header class="main-header">
             <div class="header-logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 40 40" class="logo-svg">
-                        <rect x="4" y="4" width="12" height="12" rx="2" class="logo-block block-1" />
-                        <rect x="24" y="4" width="12" height="12" rx="2" class="logo-block block-2" />
-                        <rect x="4" y="24" width="12" height="12" rx="2" class="logo-block block-3" />
-                        <circle cx="30" cy="30" r="6" class="logo-circle" />
-                    </svg>
-                </div>
-                <span class="logo-text">Qr<span class="logo-accent">Id</span></span>
+                <span class="logo-accent">QR</span><span class="logo-main">me</span>
             </div>
-            <nav class="header-nav">
-                <button class="nav-btn" data-page="home" aria-label="الرئيسية">
-                    <svg viewBox="0 0 24 24" class="nav-icon">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                        <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
+            <div class="header-actions">
+                <button class="lang-switch" id="lang-toggle">
+                    <span id="lang-label">EN</span>
                 </button>
-                <button class="nav-btn" data-page="discover" aria-label="اكتشف">
-                    <svg viewBox="0 0 24 24" class="nav-icon">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                </button>
-                <button class="nav-btn" data-page="scan" aria-label="مسح">
-                    <svg viewBox="0 0 24 24" class="nav-icon">
-                        <path d="M3 7V5a2 2 0 012-2h2" />
-                        <path d="M17 3h2a2 2 0 012 2v2" />
-                        <path d="M21 17v2a2 2 0 01-2 2h-2" />
-                        <path d="M7 21H5a2 2 0 01-2-2v-2" />
-                        <rect x="7" y="7" width="10" height="10" rx="1" />
-                    </svg>
-                </button>
-            </nav>
+                <div id="user-controls" class="hidden">
+                    <!-- Points Display -->
+                    <div class="points-badge" id="points-badge">
+                        <span class="points-icon">⭐</span>
+                        <span class="points-value" id="points-value">0</span>
+                    </div>
+                    <!-- Share Button -->
+                    <button class="btn-share" id="share-app-btn" title="Share QRme">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor"
+                                d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+                        </svg>
+                        <span data-t="share_btn">مشاركة</span>
+                    </button>
+                    <button class="btn-logout" id="logout-btn" data-t="btn_logout">خروج</button>
+                </div>
+            </div>
         </header>
 
-        <!-- Page Container -->
-        <main id="page-container" class="page-container">
-            <!-- Home Page -->
-            <section id="page-home" class="page active" data-page="home">
-                <div class="page-content">
-                    <div class="hero-section">
-                        <div class="hero-glow"></div>
-                        <h1 class="hero-title">
-                            <span class="title-line line-1">أنشئ</span>
-                            <span class="title-line line-2">اكتشف</span>
-                            <span class="title-line line-3">تواصل</span>
-                        </h1>
-                        <p class="hero-subtitle">منصة QR الذكية للمحلات والخدمات</p>
-                    </div>
+        <!-- ========== AUTH VIEWS ========== -->
 
-                    <div class="action-cards">
-                        <!-- Create QR Card -->
-                        <button class="action-card card-create" id="btn-create-qr">
-                            <div class="card-glow"></div>
-                            <div class="card-icon">
-                                <svg viewBox="0 0 80 80">
-                                    <rect x="10" y="10" width="24" height="24" rx="4" class="qr-block" />
-                                    <rect x="46" y="10" width="24" height="24" rx="4" class="qr-block" />
-                                    <rect x="10" y="46" width="24" height="24" rx="4" class="qr-block" />
-                                    <path d="M46 46h24v24h-8v-8h-8v-8h-8v-8z" class="qr-block" />
-                                    <circle cx="40" cy="40" r="8" class="qr-center" />
-                                </svg>
-                            </div>
-                            <div class="card-content">
-                                <h3 class="card-title">أنشئ QR</h3>
-                                <p class="card-desc">حوّل رابطك إلى هوية رقمية</p>
-                            </div>
-                            <div class="card-arrow">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </button>
-
-                        <!-- Discover Card -->
-                        <button class="action-card card-discover" id="btn-discover">
-                            <div class="card-glow"></div>
-                            <div class="card-icon">
-                                <svg viewBox="0 0 80 80">
-                                    <circle cx="40" cy="35" r="20" class="discover-circle" />
-                                    <path d="M55 50l15 15" class="discover-line" stroke-width="6"
-                                        stroke-linecap="round" />
-                                    <circle cx="35" cy="30" r="4" class="discover-dot" />
-                                    <circle cx="45" cy="38" r="3" class="discover-dot" />
-                                </svg>
-                            </div>
-                            <div class="card-content">
-                                <h3 class="card-title">اكتشف</h3>
-                                <p class="card-desc">ابحث عن المحلات والخدمات</p>
-                            </div>
-                            <div class="card-arrow">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </button>
-
-                        <!-- Scan Card -->
-                        <button class="action-card card-scan" id="btn-scan">
-                            <div class="card-glow"></div>
-                            <div class="card-icon">
-                                <svg viewBox="0 0 80 80">
-                                    <rect x="15" y="15" width="50" height="50" rx="8" fill="none" class="scan-frame" />
-                                    <line x1="40" y1="20" x2="40" y2="60" class="scan-line" />
-                                    <circle cx="40" cy="40" r="12" class="scan-target" />
-                                </svg>
-                            </div>
-                            <div class="card-content">
-                                <h3 class="card-title">امسح QR</h3>
-                                <p class="card-desc">افتح الكاميرا وامسح أي كود</p>
-                            </div>
-                            <div class="card-arrow">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </button>
-
-                        <!-- NEXUS ID Card -->
-                        <button class="action-card card-nexus" id="btn-nexus-id">
-                            <div class="card-glow"></div>
-                            <div class="card-icon">
-                                <svg viewBox="0 0 80 80">
-                                    <circle cx="40" cy="40" r="25" fill="none" stroke="var(--yellow-warm)"
-                                        stroke-width="2" />
-                                    <circle cx="40" cy="40" r="12"
-                                        style="fill: var(--yellow-neon); filter: drop-shadow(0 0 8px var(--yellow-glow));" />
-                                    <path d="M40 10v10M40 60v10M10 40h10M60 40h10" stroke="var(--yellow-neon)"
-                                        stroke-width="2" />
-                                </svg>
-                            </div>
-                            <div class="card-content">
-                                <h3 class="card-title">NEXUS ID</h3>
-                                <p class="card-desc">هويتك الرقمية المتطورة</p>
-                            </div>
-                            <div class="card-arrow">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </button>
-                    </div>
-
-                    <!-- Stats Section -->
-                    <div class="stats-section">
-                        <div class="stat-item">
-                            <span class="stat-number" id="stat-total-qr">0</span>
-                            <span class="stat-label">كود QR</span>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="stat-total-scans">0</span>
-                            <span class="stat-label">مسحة</span>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="stat-categories">8</span>
-                            <span class="stat-label">فئة</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Discover Page -->
-            <section id="page-discover" class="page" data-page="discover">
-                <div class="page-content">
-                    <div class="view-header">
-                        <button class="back-btn" onclick="app.navigateTo('home')" aria-label="رجوع">
-                            <svg viewBox="0 0 24 24" class="back-icon">
-                                <path d="M19 12H5M12 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h2 class="section-title">اكتشف المحلات</h2>
-                    </div>
-                    <div class="search-container">
-                        <div class="search-glow"></div>
-                        <svg class="search-icon" viewBox="0 0 24 24">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="M21 21l-4.35-4.35" />
-                        </svg>
-                        <input type="text" id="search-input" class="search-input" placeholder="ابحث عن محل أو خدمة...">
-                    </div>
+        <!-- LOGIN PAGE -->
+        <section id="view-login" class="page auth-page">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 data-t="login_title">مرحباً بعودتك</h1>
+                    <p data-t="login_subtitle">سجّل دخولك للوصول إلى هويتك الرقمية</p>
                 </div>
 
-                <!-- Categories Slider -->
-                <div class="categories-container">
-                    <div class="categories-slider" id="categories-slider">
-                        <button class="category-chip active" data-category="all">
-                            <span class="chip-icon">🌟</span>
-                            <span class="chip-text">الكل</span>
-                        </button>
-                        <button class="category-chip" data-category="pharmacy">
-                            <span class="chip-icon">💊</span>
-                            <span class="chip-text">صيدليات</span>
-                        </button>
-                        <button class="category-chip" data-category="phones">
-                            <span class="chip-icon">📱</span>
-                            <span class="chip-text">هواتف</span>
-                        </button>
-                        <button class="category-chip" data-category="restaurant">
-                            <span class="chip-icon">🍽️</span>
-                            <span class="chip-text">مطاعم</span>
-                        </button>
-                        <button class="category-chip" data-category="cafe">
-                            <span class="chip-icon">☕</span>
-                            <span class="chip-text">مقاهي</span>
-                        </button>
-                        <button class="category-chip" data-category="maintenance">
-                            <span class="chip-icon">🔧</span>
-                            <span class="chip-text">صيانة</span>
-                        </button>
-                        <button class="category-chip" data-category="fashion">
-                            <span class="chip-icon">👔</span>
-                            <span class="chip-text">أزياء</span>
-                        </button>
-                        <button class="category-chip" data-category="services">
-                            <span class="chip-icon">⚡</span>
-                            <span class="chip-text">خدمات</span>
-                        </button>
+                <form id="login-form" class="auth-form">
+                    <div class="input-group">
+                        <label data-t="login_email">البريد الإلكتروني</label>
+                        <input type="email" id="login-email" placeholder="email@example.com" required>
                     </div>
-                </div>
 
-                <!-- Stores Grid -->
-                <div class="stores-grid" id="stores-grid">
-                    <!-- Stores will be dynamically loaded here -->
-                    <div class="empty-state" id="empty-discover">
-                        <div class="empty-icon">
-                            <svg viewBox="0 0 80 80">
-                                <circle cx="40" cy="40" r="30" fill="none" stroke="currentColor" stroke-width="2"
-                                    opacity="0.3" />
-                                <path d="M40 25v30M25 40h30" stroke="currentColor" stroke-width="2" opacity="0.5" />
-                            </svg>
-                        </div>
-                        <p class="empty-text">لا توجد محلات حالياً</p>
-                        <button class="btn-primary btn-add-first" id="btn-add-first">
-                            <span>أضف أول محل</span>
-                        </button>
-                    </div>
-                </div>
-    </div>
-    </section>
-
-    <!-- Scan Page -->
-    <section id="page-scan" class="page" data-page="scan">
-        <div class="page-content scan-content">
-            <div class="view-header">
-                <button class="back-btn" onclick="app.navigateTo('home')" aria-label="رجوع">
-                    <svg viewBox="0 0 24 24" class="back-icon">
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <h2 class="section-title">امسح QR</h2>
-            </div>
-            <div class="scanner-container">
-                <div class="scanner-frame">
-                    <div class="frame-corner corner-tl"></div>
-                    <div class="frame-corner corner-tr"></div>
-                    <div class="frame-corner corner-bl"></div>
-                    <div class="frame-corner corner-br"></div>
-                    <div class="scan-line-animated"></div>
-                </div>
-                <video id="scanner-video" class="scanner-video" playsinline></video>
-                <canvas id="scanner-canvas" class="scanner-canvas"></canvas>
-            </div>
-            <div class="scanner-info">
-                <p class="scanner-hint">وجّه الكاميرا نحو كود QR</p>
-                <div class="scanner-status" id="scanner-status">
-                    <div class="status-dot"></div>
-                    <span>جاري البحث...</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- NEXUS ID Page -->
-    <section id="page-nexus-id" class="page" data-page="nexus-id">
-        <!-- Cinematic Space Entry -->
-        <div id="nexus-entry-overlay" class="nexus-entry-overlay hidden">
-            <div class="nexus-entry-content">
-                <div class="entry-line"></div>
-                <span class="entry-text">SECURE ACCESS</span>
-            </div>
-        </div>
-
-        <div class="page-content nexus-page-content">
-            <div class="view-header">
-                <button class="back-btn" onclick="app.navigateTo('home')" aria-label="رجوع">
-                    <svg viewBox="0 0 24 24" class="back-icon">
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <div class="header-titles">
-                    <h2 class="section-title">NEXUS ID</h2>
-                    <span class="section-subtitle">إدارة الفضاء الرقمي</span>
-                </div>
-            </div>
-
-            <div id="nexus-viewport" class="nexus-viewport">
-                <!-- VIEW 1: CREATION PHASE -->
-                <div id="view-nexus-create" class="nexus-view">
-                    <div class="nexus-card creation-card">
-                        <div class="form-header">
-                            <h3>أنشئ هويتك الحية</h3>
-                            <p>حول وجودك الرقمي إلى مساحة حية قابلة للمشاركة</p>
-                        </div>
-
-                        <div class="form-body">
-                            <div class="input-group">
-                                <label class="input-label">الاسم الظاهر</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="nexus-name" placeholder="مثال: المهندس أحمد">
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label class="input-label">عن الهوية</label>
-                                <div class="input-wrapper">
-                                    <textarea id="nexus-bio" placeholder="وصف مقتصر لهويتك..."></textarea>
-                                </div>
-                            </div>
-
-                            <button class="btn-primary" id="btn-create-nexus">
-                                <span>تكوين الهوية</span>
-                                <div class="btn-glow"></div>
-                            </button>
+                    <div class="input-group">
+                        <label data-t="login_password">كلمة المرور</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" placeholder="••••••••" required>
+                            <button type="button" class="toggle-password" data-target="login-password">👁️</button>
                         </div>
                     </div>
-                </div>
 
-                <!-- VIEW 2: MANAGEMENT PHASE -->
-                <div id="view-nexus-manage" class="nexus-view hidden">
-                    <div class="nexus-workspace">
-                        <div class="workspace-identity">
-                            <div class="identity-sun-container">
-                                <div class="identity-sun">
-                                    <div class="sun-core"></div>
-                                    <div class="sun-glow"></div>
-                                </div>
-                            </div>
-                            <h3 id="workspace-name">...</h3>
-                            <p id="workspace-bio">...</p>
-                        </div>
-
-                        <div class="management-controls">
-                            <div class="links-section">
-                                <div class="section-label">العناصر النبضية</div>
-                                <div id="nexus-links-list" class="links-list">
-                                    <!-- Dynamic Links -->
-                                </div>
-                                <button class="btn-add-item" id="btn-nexus-add-link">
-                                    <svg viewBox="0 0 24 24">
-                                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" />
-                                    </svg>
-                                    <span>إضافة عنصر جديد</span>
-                                </button>
-                            </div>
-
-                            <div class="master-qr-section">
-                                <div class="qr-preview-card">
-                                    <div id="nexus-master-qr"></div>
-                                    <div class="qr-info">
-                                        <span class="qr-title">NEXUS CODE</span>
-                                        <button class="btn-qr-save" onclick="app.downloadNexusQR()">
-                                            <span>حفظ الكود</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    </main>
-    </div>
-
-    <!-- Create QR Modal -->
-    <div id="modal-create" class="modal-overlay">
-        <div class="modal-backdrop"></div>
-        <div class="modal-container">
-            <div class="modal-glow"></div>
-            <button class="modal-close" id="modal-close-create" aria-label="إغلاق">
-                <svg viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-            </button>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">أنشئ QR</h2>
-                    <p class="modal-subtitle">حوّل رابطك إلى هوية رقمية مميزة</p>
-                </div>
-
-                <form id="create-qr-form" class="create-form">
-                    <div class="form-step active" data-step="1">
-                        <div class="input-group">
-                            <label class="input-label" for="store-name">اسم المحل</label>
-                            <div class="input-wrapper">
-                                <input type="text" id="store-name" class="form-input" placeholder="مثال: صيدلية النور"
-                                    required>
-                                <div class="input-glow"></div>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label class="input-label" for="store-link">الرابط</label>
-                            <div class="input-wrapper">
-                                <input type="url" id="store-link" class="form-input" placeholder="https://..." required>
-                                <div class="input-glow"></div>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label class="input-label">اختر المهنة</label>
-                            <div class="profession-grid">
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="pharmacy" required>
-                                    <div class="profession-card">
-                                        <span class="profession-icon">💊</span>
-                                        <span class="profession-name">صيدلية</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="phones">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">📱</span>
-                                        <span class="profession-name">هواتف</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="restaurant">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">🍽️</span>
-                                        <span class="profession-name">مطعم</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="cafe">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">☕</span>
-                                        <span class="profession-name">مقهى</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="maintenance">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">🔧</span>
-                                        <span class="profession-name">صيانة</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="fashion">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">👔</span>
-                                        <span class="profession-name">أزياء</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="services">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">⚡</span>
-                                        <span class="profession-name">خدمات</span>
-                                    </div>
-                                </label>
-                                <label class="profession-option">
-                                    <input type="radio" name="profession" value="other">
-                                    <div class="profession-card">
-                                        <span class="profession-icon">🏪</span>
-                                        <span class="profession-name">أخرى</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-generate">
-                            <span class="btn-text">توليد QR</span>
-                            <div class="btn-glow"></div>
-                            <div class="btn-particles"></div>
-                        </button>
-                    </div>
+                    <button type="submit" class="btn-primary btn-full">
+                        <span data-t="login_btn">تسجيل الدخول</span>
+                    </button>
                 </form>
 
-                <!-- QR Result -->
-                <div id="qr-result" class="qr-result hidden">
-                    <div class="qr-display">
-                        <div class="qr-frame">
-                            <div id="qr-code-container"></div>
-                        </div>
-                        <div class="qr-shine"></div>
+                <div class="auth-footer">
+                    <p><span data-t="login_no_account">ليس لديك حساب؟</span> <button class="link-btn" id="goto-register"
+                            data-t="login_register_link">انضم الآن</button></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- REGISTER PAGE -->
+        <section id="view-register" class="page auth-page hidden">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 data-t="register_title">انضم إلى QRme</h1>
+                    <p data-t="register_subtitle">أنشئ هويتك الرقمية المتطورة</p>
+                </div>
+
+                <form id="register-form" class="auth-form">
+                    <div class="input-group">
+                        <label data-t="register_fullname">الاسم الكامل</label>
+                        <input type="text" id="reg-fullname" data-t-placeholder="register_fullname" required
+                            minlength="3">
                     </div>
-                    <div class="qr-actions">
-                        <button class="btn-action" id="btn-save-qr">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                                <polyline points="7 10 12 15 17 10" />
-                                <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg>
-                            <span>حفظ الصورة</span>
-                        </button>
-                        <button class="btn-action" id="btn-share-qr">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="18" cy="5" r="3" />
-                                <circle cx="6" cy="12" r="3" />
-                                <circle cx="18" cy="19" r="3" />
-                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                            </svg>
-                            <span>مشاركة</span>
-                        </button>
-                        <button class="btn-action btn-new" id="btn-new-qr">
-                            <svg viewBox="0 0 24 24">
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            <span>إنشاء جديد</span>
-                        </button>
+
+                    <div class="input-group">
+                        <label data-t="register_email">البريد الإلكتروني</label>
+                        <input type="email" id="reg-email" placeholder="email@example.com" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-t="register_password">كلمة المرور</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="reg-password" placeholder="••••••••" required minlength="6">
+                            <button type="button" class="toggle-password" data-target="reg-password">👁️</button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-bar"></div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-t="register_confirm">تأكيد كلمة المرور</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="reg-confirm" placeholder="••••••••" required>
+                            <button type="button" class="toggle-password" data-target="reg-confirm">👁️</button>
+                        </div>
+                        <span class="input-hint" id="confirm-hint"></span>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-full" data-t="register_btn">إنشاء حساب</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p><span data-t="register_have_account">لديك حساب؟</span> <button class="link-btn" id="goto-login"
+                            data-t="register_login_link">سجّل دخولك</button></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- EMAIL VERIFICATION -->
+        <section id="view-verify" class="page auth-page hidden">
+            <div class="auth-card verify-card">
+                <div class="verify-icon">📧</div>
+                <h1 data-t="verify_title">تحقق من بريدك</h1>
+                <p data-t="verify_subtitle">أرسلنا رابط التأكيد إلى</p>
+                <p class="verify-email" id="verify-email-display">---</p>
+                <div class="verify-note">
+                    <button class="link-btn" id="resend-email" data-t="verify_resend">إعادة الإرسال</button>
+                    <button class="link-btn" id="back-to-login" data-t="verify_back">رجع لتسجيل الدخول</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== MAIN HUB ========== -->
+        <section id="view-hub" class="page hidden">
+            <!-- Personal Space -->
+            <div class="hub-section">
+                <h2 class="hub-title" data-t="hub_my_space">المساحة الشخصية</h2>
+
+                <div id="personal-identity-container">
+                    <!-- Create Identity Form -->
+                    <div id="create-identity-ui" class="identity-form-card hidden">
+                        <h3 data-t="hub_create_identity">تكوين هويتك الرقمية</h3>
+                        <form id="create-identity-form">
+                            <div class="input-group">
+                                <label data-t="hub_name_label">اسم الهوية</label>
+                                <input type="text" id="identity-name" data-t-placeholder="hub_name_label" required>
+                            </div>
+                            <div class="input-group">
+                                <label data-t="hub_bio_label">نبذة (اختياري)</label>
+                                <textarea id="identity-bio" data-t-placeholder="hub_bio_label"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary" data-t="hub_create_btn">تكوين الهوية</button>
+                        </form>
+                    </div>
+
+                    <!-- Biometric Card -->
+                    <div id="my-biometric-card" class="biometric-card interactive hidden">
+                        <div class="card-mesh"></div>
+                        <div class="biometric-scanline"></div>
+                        <div class="card-body">
+                            <div class="card-header">
+                                <span class="protocol-label">QRme // NEXUS PROTOCOL</span>
+                                <div class="status-orb pulse"></div>
+                            </div>
+                            <div class="user-info">
+                                <h3 id="my-identity-name">---</h3>
+                                <span class="status-badge" data-t="vault_owner_badge">مالك الهوية</span>
+                            </div>
+                            <div class="card-footer">
+                                <span class="id-serial" id="my-identity-id">NX-0000</span>
+                                <div class="click-hint" data-t="vault_tap_qr">[ اضغط لفتح الخزنة ]</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Store Detail Modal -->
-    <div id="modal-store" class="modal-overlay">
-        <div class="modal-backdrop"></div>
-        <div class="modal-container store-modal">
-            <div class="modal-glow"></div>
-            <button class="modal-close" id="modal-close-store" aria-label="إغلاق">
-                <svg viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-            </button>
-            <div class="store-identity-page" id="store-identity">
-                <!-- Store identity content will be injected here -->
+            <!-- Global Network Stats -->
+            <div class="hub-section stats-section">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-identities">0</span>
+                        <span class="stat-label">هوية نشطة</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-codes">0</span>
+                        <span class="stat-label">كود تمت مشاركته</span>
+                    </div>
+                    <div class="stat-item highlight">
+                        <span class="stat-value" id="stat-reach">0</span>
+                        <span class="stat-label">وصول الشبكة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discovery Corridor -->
+            <div class="hub-section">
+                <h2 class="hub-title" data-t="hub_discovery">رواق الاكتشاف العام</h2>
+                <div id="discovery-corridor" class="discovery-corridor">
+                    <div class="loading-text">جاري التحميل...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== VAULT MODAL ========== -->
+        <div id="vault-overlay" class="vault-modal hidden">
+            <div class="vault-container">
+                <div class="vault-header">
+                    <button class="btn-close-vault" id="close-vault-btn">✕</button>
+                    <h2 id="vault-owner-name" data-t="vault_title">الخزنة</h2>
+                    <span class="vault-badge" id="vault-badge" data-t="qr_encrypted_title">مشفرة</span>
+                </div>
+
+                <div id="vault-grid" class="vault-grid"></div>
+
+                <div id="vault-actions" class="vault-actions hidden">
+                    <button class="btn-add-code" id="add-code-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                        <span data-t="vault_add_code">إضافة كود</span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Scan Result Modal -->
-    <div id="modal-scan-result" class="modal-overlay">
-        <div class="modal-backdrop"></div>
-        <div class="modal-container scan-result-modal">
-            <div class="modal-glow"></div>
-            <button class="modal-close" id="modal-close-scan" aria-label="إغلاق">
-                <svg viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-            </button>
-            <div class="scan-result-content" id="scan-result-content">
-                <!-- Scan result will be injected here -->
+        <!-- ========== ADD CODE MODAL (Step-Based) ========== -->
+        <div id="add-code-overlay" class="code-modal hidden">
+            <div class="code-modal-container">
+                <div class="code-modal-header">
+                    <button class="btn-back-step hidden" id="back-step-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor"
+                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                        </svg>
+                    </button>
+                    <h2 id="code-modal-title" data-t="code_modal_title">إضافة كود جديد</h2>
+                    <button class="btn-close-code" id="close-code-btn">✕</button>
+                </div>
+
+                <!-- Step 1: Select Category -->
+                <div id="step-category" class="code-step active">
+                    <p class="step-label" data-t="code_step_category">اختر المجال</p>
+                    <div id="category-list" class="category-grid"></div>
+                </div>
+
+                <!-- Step 2: Select Service -->
+                <div id="step-service" class="code-step hidden">
+                    <p class="step-label" data-t="code_step_service">اختر الخدمة</p>
+                    <div id="service-grid" class="service-grid"></div>
+                </div>
+
+                <!-- Step 3: Enter Value -->
+                <div id="step-form" class="code-step hidden">
+                    <div class="selected-service-preview" id="selected-service-preview"></div>
+                    <form id="code-value-form">
+                        <div class="input-group">
+                            <label id="code-value-label" data-t="code_value_label">الرابط أو الرقم</label>
+                            <input type="text" id="code-value-input" required>
+                        </div>
+                        <div class="input-group">
+                            <label data-t="code_name_label">اسم مختصر (اختياري)</label>
+                            <input type="text" id="code-name-input" data-t-placeholder="code_name_label">
+                        </div>
+                        <button type="submit" class="btn-primary btn-full">
+                            <span data-t="code_save_btn">إنشاء الكود</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Step Progress -->
+                <div class="step-progress">
+                    <div class="step-dot active" data-step="1"></div>
+                    <div class="step-dot" data-step="2"></div>
+                    <div class="step-dot" data-step="3"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Toast Notification -->
-    <div id="toast-container" class="toast-container"></div>
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
 
     <!-- Scripts -->
     <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/supabase.js"></script>
-    <script src="js/animations.js"></script>
-    <script src="js/scanner.js"></script>
     <script src="js/app.js"></script>
 </body>
 

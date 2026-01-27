@@ -142,3 +142,20 @@ class NexusLink {
   }
 }
 
+class UserPoints {
+  final int totalPoints;
+  final int totalShares;
+
+  UserPoints({
+    required this.totalPoints,
+    required this.totalShares,
+  });
+
+  factory UserPoints.fromJson(Map<String, dynamic> json) {
+    return UserPoints(
+      totalPoints: json['total_points'] ?? 0,
+      totalShares: json['total_shares'] ?? 0,
+    );
+  }
+}
+

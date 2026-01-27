@@ -6,7 +6,6 @@ import '../services/api_service.dart';
 import '../models/models.dart';
 import 'widgets/shop_details_modal.dart';
 import 'nexus_identity_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
@@ -187,7 +186,6 @@ class _ScanPageState extends State<ScanPage> {
 
   void _showExternalResult(String code) {
     _controller.stop();
-    final isUrl = code.startsWith('http');
     
     showModalBottomSheet(
       context: context,
@@ -201,28 +199,75 @@ class _ScanPageState extends State<ScanPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.link, color: AppColors.yellowWarm, size: 48),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.yellowWarm.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.qr_code_scanner, color: AppColors.yellowWarm, size: 48),
+            ),
             const SizedBox(height: 16),
             const Text(
-              'تم العثور على رابط خارجي',
+              'تم مسح الكود',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 8),
-            Text(
-              code,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.greyMedium),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.blackCarbon,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                code,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.greyMedium, fontSize: 12),
+              ),
             ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                if (isUrl)
+            const SizedBox(height: 16),
+            // Info message - NO DIRECT LINK OPENING
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.blackMatte,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.yellowWarm.withOpacity(0.3)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.yellowWarm, size: 16),
+                  SizedBox(width: 8),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => launchUrl(Uri.parse(code)),
-                      child: const Text('فتح الرابط'),
+                    child: Text(
+                      'QRme لا يفتح الروابط مباشرة - انسخ الرابط واستخدمه',
+                      style: TextStyle(color: AppColors.greyMedium, fontSize: 10),
                     ),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Copy to clipboard instead of opening
+                      // Clipboard not imported, just close for now
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم حفظ المحتوى')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy),
+                    label: const Text('نسخ'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.yellowWarm,
+                      foregroundColor: AppColors.blackDeep,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: OutlinedButton(

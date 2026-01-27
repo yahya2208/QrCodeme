@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../core/constants.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
@@ -237,7 +237,8 @@ class _NexusIdentityScreenState extends State<NexusIdentityScreen> with SingleTi
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: InkWell(
-        onTap: () => launchUrl(Uri.parse(link.url)),
+        // CRITICAL: Show QR Code instead of opening URL directly
+        onTap: () => _showQRCodeModal(link),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -263,18 +264,114 @@ class _NexusIdentityScreenState extends State<NexusIdentityScreen> with SingleTi
               ),
               const SizedBox(width: 20),
               Expanded(
-                child: Text(
-                  link.label,
-                  style: GoogleFonts.outfit(
-                    color: AppColors.whitePure,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      link.label,
+                      style: GoogleFonts.outfit(
+                        color: AppColors.whitePure,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'اضغط لعرض QR',
+                      style: GoogleFonts.outfit(
+                        color: AppColors.yellowWarm.withOpacity(0.7),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Icon(Icons.keyboard_arrow_down, color: AppColors.greyDark, size: 16),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.yellowWarm.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.qr_code, color: AppColors.yellowWarm, size: 16),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Show QR Code Modal - CORE FUNCTIONALITY (NO DIRECT LINK OPENING)
+  void _showQRCodeModal(NexusLink link) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: const BoxDecoration(
+          color: AppColors.blackCarbon,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.greyDark,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Title
+            Text(
+              link.label,
+              style: GoogleFonts.outfit(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: AppColors.whitePure,
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // QR Code Container
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.yellowWarm.withOpacity(0.3),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: QrImageView(
+                data: link.url,
+                version: QrVersions.auto,
+                size: 200,
+                backgroundColor: Colors.white,
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Instruction
+            Text(
+              'امسح الكود باستخدام كاميرا الهاتف',
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                color: AppColors.greyMedium,
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );

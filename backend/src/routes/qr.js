@@ -62,7 +62,7 @@ router.get('/resolve/:id', async (req, res, next) => {
  */
 router.post('/generate', async (req, res, next) => {
     try {
-        const { name, link, category, description } = req.body;
+        const { name, link, category, description, identityId } = req.body;
 
         if (!name || !link || !category) {
             return res.status(400).json({
@@ -76,6 +76,7 @@ router.post('/generate', async (req, res, next) => {
             name: name.trim(),
             link: link.trim(),
             category,
+            identityId,
             description: description?.trim()
         });
 
