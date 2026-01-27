@@ -4,7 +4,8 @@
 
 class APIClient {
     constructor() {
-        this.baseURL = 'http://localhost:3001/api';
+        // Use the global config if available, otherwise fallback
+        this.baseURL = (typeof CONFIG !== 'undefined') ? CONFIG.API_URL : 'http://localhost:3001/api';
     }
 
     async request(endpoint, options = {}) {

@@ -1,12 +1,22 @@
 // QR NEXUS - Frontend Configuration
 // No sensitive keys here - all handled by backend
 
+const getHost = () => {
+    // Check if we are running in a local file or local server
+    const host = window.location.hostname;
+    if (!host || host === 'localhost' || host === '127.0.0.1') {
+        return 'localhost'; // Default to localhost for local dev
+    }
+    return host;
+};
+
 const CONFIG = {
-    // Backend API URL
-    API_URL: 'http://localhost:3001/api',
+    // Backend API URL - use current host to support network discovery
+    API_URL: `http://${getHost()}:3001/api`,
+    WEB_URL: window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin,
 
     // App Settings
-    APP_NAME: 'QR NEXUS',
+    APP_NAME: 'Qr Id',
     APP_VERSION: '1.0.0',
 
     // Categories (for UI only)
@@ -39,8 +49,7 @@ const CONFIG = {
     }
 };
 
-// Freeze config to prevent modifications
-Object.freeze(CONFIG);
+// Freeze config (careful with dynamic objects)
 Object.freeze(CONFIG.CATEGORIES);
 Object.freeze(CONFIG.ANIMATION);
 Object.freeze(CONFIG.QR);

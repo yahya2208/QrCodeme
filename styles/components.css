@@ -1,5 +1,82 @@
 /* QR NEXUS - Components Styles */
 
+/* Shared Form Styles */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+    text-align: right;
+}
+
+.input-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-light);
+    margin-bottom: 4px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.form-input,
+.nexus-creation-form input,
+.nexus-creation-form textarea {
+    width: 100%;
+    padding: var(--space-md);
+    background: var(--black-carbon);
+    border: 1px solid var(--black-charcoal);
+    border-radius: var(--radius-md);
+    color: var(--white-pure);
+    font-size: 1rem;
+    transition: all var(--transition-normal);
+}
+
+.form-input:focus,
+.nexus-creation-form input:focus,
+.nexus-creation-form textarea:focus {
+    border-color: var(--yellow-neon);
+    background: var(--black-matte);
+    box-shadow: var(--shadow-glow-sm);
+}
+
+.btn-primary {
+    position: relative;
+    width: 100%;
+    padding: var(--space-md);
+    background: var(--yellow-warm);
+    color: var(--black-void);
+    border-radius: var(--radius-md);
+    font-weight: 800;
+    font-size: 1rem;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow-md);
+    background: var(--yellow-neon);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+}
+
+.btn-primary:hover .btn-glow {
+    transform: translateX(100%);
+}
+
 /* Hero Section */
 .hero-section {
     position: relative;
@@ -55,6 +132,7 @@
 .line-2 {
     background: linear-gradient(135deg, var(--yellow-neon), var(--yellow-warm), var(--yellow-amber));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 20px var(--yellow-glow));
 }
@@ -246,6 +324,7 @@
     font-weight: 800;
     background: linear-gradient(135deg, var(--yellow-neon), var(--yellow-warm));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -262,15 +341,51 @@
     background: linear-gradient(180deg, transparent, var(--black-charcoal), transparent);
 }
 
-/* Discover Page */
-.discover-header {
+/* View Header with Back Button */
+.view-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
     margin-bottom: var(--space-lg);
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    background: var(--black-carbon);
+    border: 1px solid var(--black-charcoal);
+    color: var(--white-pure);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.back-btn:hover {
+    border-color: var(--yellow-neon);
+    background: var(--black-matte);
+    box-shadow: var(--shadow-glow-sm);
+    transform: translateX(4px);
+}
+
+.back-icon {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
 }
 
 .section-title {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: var(--space-md);
+}
+
+/* Discover Page */
+.discover-header {
+    margin-bottom: var(--space-lg);
 }
 
 .search-container {
@@ -637,4 +752,232 @@
         opacity: 0.5;
         transform: scale(0.8);
     }
+}
+
+/* NEXUS ID Styles */
+.nexus-entry-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--black-void);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.nexus-entry-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.entry-line {
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--yellow-neon), transparent);
+    animation: nexusLinePulse 2s ease-in-out infinite;
+}
+
+.entry-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.5em;
+    color: var(--white-pure);
+    opacity: 0.5;
+}
+
+@keyframes nexusLinePulse {
+
+    0%,
+    100% {
+        height: 40px;
+        opacity: 0.3;
+    }
+
+    50% {
+        height: 80px;
+        opacity: 1;
+    }
+}
+
+/* NEXUS ID Modular System */
+.nexus-page-content {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    padding-bottom: var(--space-xl);
+}
+
+.nexus-viewport {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    padding: var(--space-lg) 0;
+}
+
+.nexus-view {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    transition: all var(--transition-slow);
+}
+
+/* Creation Card */
+.creation-card {
+    background: var(--black-carbon);
+    border: 1px solid var(--black-charcoal);
+    padding: var(--space-xl);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-glow-sm);
+    margin-top: var(--space-2xl);
+}
+
+/* Workspace Styles */
+.nexus-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xl);
+}
+
+.workspace-identity {
+    text-align: center;
+}
+
+.identity-sun-container {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-lg);
+}
+
+.identity-sun {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: var(--yellow-neon);
+    border-radius: 50%;
+    box-shadow: 0 0 30px var(--yellow-glow);
+}
+
+.sun-glow {
+    position: absolute;
+    inset: -15px;
+    background: radial-gradient(circle, var(--yellow-whisper), transparent 70%);
+    animation: nexusSunBreath 4s ease-in-out infinite;
+}
+
+@keyframes nexusSunBreath {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(1.8);
+        opacity: 0.6;
+    }
+}
+
+.editable-text {
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.editable-text:hover {
+    color: var(--yellow-warm);
+}
+
+#workspace-name {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: var(--space-xs);
+}
+
+#workspace-bio {
+    color: var(--gray-light);
+    font-size: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Links Section */
+.management-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xl);
+}
+
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--gray-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    margin-bottom: var(--space-md);
+    padding-right: var(--space-sm);
+}
+
+.btn-add-item {
+    width: 100%;
+    padding: var(--space-lg);
+    background: var(--black-carbon);
+    border: 1px dashed var(--black-charcoal);
+    border-radius: var(--radius-xl);
+    color: var(--gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    font-weight: 600;
+    transition: all var(--transition-normal);
+}
+
+.btn-add-item:hover {
+    background: var(--black-matte);
+    border-color: var(--yellow-warm);
+    color: var(--white-pure);
+    transform: scale(1.02);
+}
+
+/* Master QR Section */
+.qr-preview-card {
+    background: var(--white-pure);
+    padding: var(--space-xl);
+    border-radius: var(--radius-2xl);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+#nexus-master-qr canvas {
+    max-width: 140px;
+    height: auto;
+}
+
+.qr-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.qr-title {
+    color: var(--black-void);
+    font-weight: 900;
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+}
+
+.btn-qr-save {
+    background: var(--black-void);
+    color: var(--white-pure);
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
 }

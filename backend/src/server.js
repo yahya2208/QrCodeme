@@ -1,5 +1,5 @@
 /**
- * QR NEXUS - Backend Server
+ * Qr Id - Backend Server
  * Main Entry Point
  * 
  * This server acts as a middleware between the frontend and Supabase.
@@ -17,6 +17,7 @@ const rateLimit = require('express-rate-limit');
 const storesRouter = require('./routes/stores');
 const qrRouter = require('./routes/qr');
 const analyticsRouter = require('./routes/analytics');
+const nexusRouter = require('./routes/nexus');
 
 // Initialize Express app
 const app = express();
@@ -87,14 +88,17 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Stores API
-app.use('/api/stores', storesRouter);
+// Stores API (Changed to /shops to match frontend and NEXUS ID specs)
+app.use('/api/shops', storesRouter);
 
 // QR Code API
 app.use('/api/qr', qrRouter);
 
 // Analytics API
 app.use('/api/analytics', analyticsRouter);
+
+// Nexus ID API
+app.use('/api/nexus', nexusRouter);
 
 // ===================
 // ERROR HANDLING
@@ -128,7 +132,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════╗
-║         QR NEXUS Backend Server            ║
+║             Qr Id Backend Server           ║
 ╠════════════════════════════════════════════╣
 ║  Status:  ✅ Running                        ║
 ║  Port:    ${PORT}                              ║

@@ -1,6 +1,6 @@
 {
-  "name": "QR NEXUS",
-  "short_name": "QR NEXUS",
+  "name": "Qr Id",
+  "short_name": "Qr Id",
   "description": "منصة اكتشاف ذكية لإنشاء أكواد QR والعثور على المحلات والخدمات",
   "start_url": "/",
   "display": "standalone",

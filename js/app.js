@@ -11,23 +11,29 @@ class QRNexusApp {
     async init() {
         console.log('🚀 QR NEXUS Initializing...');
 
-        // Initialize modules
-        await db.init();
-        animations.init();
-        await scanner.init();
+        try {
+            // Initialize modules without blocking too much
+            await db.init().catch(e => console.warn('DB Init Warning:', e));
+            animations.init();
+            await scanner.init().catch(e => console.warn('Scanner Init Warning:', e));
 
-        // Setup event listeners
-        this.setupNavigation();
-        this.setupCreateModal();
-        this.setupSearch();
-        this.setupCategories();
+            // Setup event listeners
+            this.setupNavigation();
+            this.setupCreateModal();
+            this.setupSearch();
+            this.setupCategories();
+            this.setupNexusId();
 
-        // Load initial data
-        await this.loadStats();
-        await this.loadStores();
+            // Load initial data
+            this.loadStats().catch(e => console.error('Stats Error:', e));
+            this.loadStores().catch(e => console.error('Stores Error:', e));
+
+        } catch (error) {
+            console.error('💥 Critical Init Failure:', error);
+        }
 
         // Hide loader after animation
-        setTimeout(() => this.hideLoader(), CONFIG.ANIMATION.LOADER_DURATION);
+        setTimeout(() => this.hideLoader(), CONFIG.ANIMATION.LOADER_DURATION || 2000);
 
         console.log('✅ QR NEXUS Ready!');
     }
@@ -69,6 +75,11 @@ class QRNexusApp {
             this.navigateTo('scan');
         });
 
+        document.getElementById('btn-nexus-id')?.addEventListener('click', (e) => {
+            animations.createRipple(e, e.currentTarget);
+            this.navigateTo('nexus-id');
+        });
+
         // Add first store button
         document.getElementById('btn-add-first')?.addEventListener('click', () => {
             this.openCreateModal();
@@ -106,6 +117,10 @@ class QRNexusApp {
 
         if (page === 'discover') {
             this.loadStores();
+        }
+
+        if (page === 'nexus-id') {
+            this.triggerNexusEntry();
         }
     }
 
@@ -578,17 +593,230 @@ class QRNexusApp {
         }, 3000);
     }
 
+    // NEXUS ID: Entry Animation
+    triggerNexusEntry() {
+        const overlay = document.getElementById('nexus-entry-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('hidden');
+        overlay.style.opacity = '1';
+        overlay.style.pointerEvents = 'auto'; // Block interaction during entry
+
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.style.pointerEvents = 'none'; // Re-enable interaction
+            }, 1000);
+        }, 1500);
+    }
+
+    // NEXUS ID: Setup Creation & Workspace
+    setupNexusId() {
+        const btnCreate = document.getElementById('btn-create-nexus');
+        const btnAddLink = document.getElementById('btn-nexus-add-link');
+
+        btnCreate?.addEventListener('click', async () => {
+            const nameEl = document.getElementById('nexus-name');
+            const bioEl = document.getElementById('nexus-bio');
+            const name = nameEl?.value?.trim();
+            const bio = bioEl?.value?.trim();
+
+            if (!name) {
+                this.showToast('يرجى إدخال الاسم', 'error');
+                return;
+            }
+
+            try {
+                btnCreate.disabled = true;
+                btnCreate.innerHTML = '<span>جاري التكوين...</span>';
+
+                const response = await fetch(`${CONFIG.API_URL}/nexus/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: name, bio: bio })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    this.showToast('تم تكوين هويتك بنجاح! 🌌', 'success');
+                    this.currentNexusId = result.data.identityId;
+                    this.renderNexusWorkspace(this.currentNexusId, name, bio, []);
+                }
+            } catch (e) {
+                this.showToast('خطأ في الاتصال بالخادم', 'error');
+            } finally {
+                btnCreate.disabled = false;
+                btnCreate.innerHTML = '<span>تكوين الهوية</span><div class="btn-glow"></div>';
+            }
+        });
+
+        btnAddLink?.addEventListener('click', () => {
+            this.addNexusLinkUI('', '');
+        });
+    }
+
+    async saveNexusIdentity() {
+        if (!this.currentNexusId) return;
+
+        const name = document.getElementById('workspace-name')?.textContent;
+        const bio = document.getElementById('workspace-bio')?.textContent;
+        const links = [];
+
+        document.querySelectorAll('.nexus-link-item').forEach(item => {
+            const label = item.querySelector('.link-label-input')?.value;
+            const url = item.querySelector('.link-url-input')?.value;
+            if (label && url) {
+                links.push({ label, url, icon: 'link' });
+            }
+        });
+
+        try {
+            const response = await fetch(`${CONFIG.API_URL}/nexus/${this.currentNexusId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ displayName: name, bio: bio, links: links })
+            });
+            const result = await response.json();
+            if (result.success) {
+                this.showToast('تمت المزامنة سحابياً ✅', 'success');
+            }
+        } catch (e) {
+            this.showToast('فشلت المزامنة', 'error');
+        }
+    }
+
+    renderNexusWorkspace(id, name, bio, links) {
+        const createView = document.getElementById('view-nexus-create');
+        const manageView = document.getElementById('view-nexus-manage');
+
+        const nameEl = document.getElementById('workspace-name');
+        const bioEl = document.getElementById('workspace-bio');
+
+        if (nameEl) nameEl.textContent = name;
+        if (bioEl) bioEl.textContent = bio || 'مساحة رقمية حية';
+
+        // Render existing links
+        const list = document.getElementById('nexus-links-list');
+        if (list) {
+            list.innerHTML = '';
+            links.forEach(l => this.addNexusLinkUI(l.label, l.url));
+        }
+
+        // Generate Master QR
+        const qrBox = document.getElementById('nexus-master-qr');
+        if (qrBox) {
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, {
+                text: `${window.location.origin}${window.location.pathname}?nexus=${id}`,
+                width: 140,
+                height: 140,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        if (createView) createView.classList.add('hidden');
+        if (manageView) manageView.classList.remove('hidden');
+
+        this.setupAutoSync();
+    }
+
+    addNexusLinkUI(label = '', url = '') {
+        const list = document.getElementById('nexus-links-list');
+        if (!list) return;
+
+        const linkEl = document.createElement('div');
+        linkEl.className = 'nexus-link-item action-card active-link';
+        linkEl.style.cssText = `
+            padding: 20px;
+            margin-bottom: 15px;
+            flex-direction: column;
+            align-items: stretch;
+            background: rgba(15,15,15,0.9);
+            border: 1px solid rgba(255,240,0,0.1);
+        `;
+
+        linkEl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+                 <div class="card-icon" style="width:24px; height:24px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow-neon)" stroke-width="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path></svg>
+                </div>
+                <button class="delete-link-btn" style="color:#ff3333; font-size:24px; font-weight:bold; cursor:pointer">&times;</button>
+            </div>
+            <div class="link-fields" style="display:flex; flex-direction:column; gap:12px">
+                <input type="text" class="link-label-input" placeholder="اسم الرابط (مثال: متجري)" value="${this.escapeHtml(label)}" style="background:var(--black-deep); border:1px solid var(--black-charcoal); border-radius:8px; padding:12px; color:white; font-size:15px">
+                <input type="url" class="link-url-input" placeholder="رابط URL (https://...)" value="${this.escapeHtml(url)}" style="background:var(--black-deep); border:1px solid var(--black-charcoal); border-radius:8px; padding:12px; color:white; font-size:15px">
+            </div>
+            <button class="sync-now-btn" style="margin-top:15px; background:var(--yellow-warm); color:black; border:none; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer; width:100%">تحديث هذا العنصر</button>
+        `;
+
+        linkEl.querySelector('.delete-link-btn').onclick = (e) => {
+            e.stopPropagation();
+            linkEl.style.opacity = '0.5';
+            linkEl.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                linkEl.remove();
+                this.saveNexusIdentity();
+            }, 200);
+        };
+
+        linkEl.querySelector('.sync-now-btn').onclick = async (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.textContent;
+            btn.textContent = 'جاري المزامنة...';
+            await this.saveNexusIdentity();
+            btn.textContent = 'تم الحفظ ✅';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        };
+
+        list.appendChild(linkEl);
+        if (typeof gsap !== 'undefined') {
+            gsap.from(linkEl, { y: 20, opacity: 0, duration: 0.5, ease: 'power2.out' });
+        }
+    }
+
+    setupAutoSync() {
+        const nameEl = document.getElementById('workspace-name');
+        const bioEl = document.getElementById('workspace-bio');
+
+        let syncTimeout;
+        [nameEl, bioEl].forEach(el => {
+            if (el) {
+                el.setAttribute('contenteditable', 'true');
+                el.oninput = () => {
+                    clearTimeout(syncTimeout);
+                    syncTimeout = setTimeout(() => this.saveNexusIdentity(), 3000);
+                };
+            }
+        });
+    }
+
+    async downloadNexusQR() {
+        const canvas = document.querySelector('#nexus-master-qr canvas');
+        if (!canvas) return;
+
+        const link = document.createElement('a');
+        link.download = `nexus-id-${this.currentNexusId}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        this.showToast('تم حفظ الكود بنجاح! 📸', 'success');
+    }
+
     // Escape HTML
     escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    // Check for store parameter on load
-    async checkStoreParam() {
+    // Check for store or nexus query params
+    async checkQueryParams() {
         const params = new URLSearchParams(window.location.search);
         const storeId = params.get('store');
+        const nexusId = params.get('nexus');
 
         if (storeId) {
             const store = await db.getStore(storeId);
@@ -596,6 +824,9 @@ class QRNexusApp {
                 await db.incrementScan(storeId);
                 this.openStoreModal(store);
             }
+        } else if (nexusId) {
+            this.showToast('مرحباً بك في فضاء NEXUS', 'info');
+            // Additional logic to display a public NEXUS page could go here
         }
     }
 }
@@ -605,5 +836,5 @@ const app = new QRNexusApp();
 
 document.addEventListener('DOMContentLoaded', async () => {
     await app.init();
-    await app.checkStoreParam();
+    await app.checkQueryParams();
 });
