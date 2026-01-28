@@ -82,6 +82,9 @@ class QRmeApp {
         this.setupQRModal();
         this.setupShareSystem();
         this.setupI18n();
+        this.setupIdentityEditing();
+        this.setupAdminDashboard();
+        this.setupOnboarding();
 
         await this.checkAuthState();
 
@@ -132,7 +135,14 @@ class QRmeApp {
                 ]);
 
                 document.getElementById('user-controls')?.classList.remove('hidden');
+
+                // Admin check
+                if (user.email === 'admin@qrme.com') { // Placeholder admin email
+                    this.showAdminLink();
+                }
+
                 this.showView('hub');
+                this.checkOnboarding();
             } else {
                 this.showView('login');
             }
@@ -486,16 +496,13 @@ class QRmeApp {
                             </div>`;
                     }
 
-                    // Map service icons to SVGs if they are just names
-                    let iconSVG = code.service_icon;
-                    if (!iconSVG || !iconSVG.includes('<svg')) {
-                        iconSVG = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
-                    }
+                    // Futuristic Glyph Generation (Requirement 1)
+                    const glyphHTML = this.generateFuturisticGlyph(code.service_name || 'generic', code.service_color || '#f0ff42');
 
                     item.innerHTML = `
                         <div class="vault-item-main">
-                            <div class="vault-item-icon" style="color: ${code.service_color || '#f0ff42'}">
-                                ${iconSVG}
+                            <div class="vault-item-icon">
+                                ${glyphHTML}
                             </div>
                             <div class="vault-item-info">
                                 <div class="vault-item-name"></div>
@@ -513,15 +520,9 @@ class QRmeApp {
 
                     item.querySelector('.vault-item-name').textContent = code.name || code.service_name;
 
-                    // Use a flag to prevent multiple rapid clicks
-                    let isTracking = false;
-
                     item.querySelector('.vault-item-main').onclick = (e) => {
                         e.stopPropagation();
-
                         if (code.display_value && code.display_value !== '••••••••') {
-                            // Pass code.id so QR points to tracking URL
-                            // Tracking happens when the printed QR is scanned, not when clicking here
                             this.showQRModal(code.display_value, code.name || code.service_name, code.service_color, code.id);
                         } else {
                             this.showEncryptedQRMessage(code.name || code.service_name);
@@ -537,6 +538,20 @@ class QRmeApp {
                 });
             } else {
                 grid.innerHTML = `<div class="empty-vault">${i18n.t('vault_empty')}</div>`;
+            }
+
+            // Curiosity Trap (Requirement 2)
+            const trap = document.getElementById('curiosity-trap');
+            if (trap) {
+                if (!realIsOwner && (!this.user || !this.identity)) {
+                    trap.classList.remove('hidden');
+                    document.getElementById('trap-cta-btn').onclick = () => {
+                        document.getElementById('vault-overlay').classList.add('hidden');
+                        this.showView('register');
+                    };
+                } else {
+                    trap.classList.add('hidden');
+                }
             }
         } catch (err) {
             grid.innerHTML = `<div class="error-vault">${i18n.t('msg_error')}</div>`;
@@ -1217,6 +1232,205 @@ class QRmeApp {
                 { scale: 1, color: '#ffffff', duration: 0.5, ease: 'elastic.out(1, 0.3)' }
             );
         }
+    }
+
+    // =====================
+    // REQUIREMENT 6: IDENTITY EDITING
+    // =====================
+    setupIdentityEditing() {
+        document.getElementById('edit-identity-btn')?.addEventListener('click', () => {
+            if (!this.identity) return;
+            document.getElementById('edit-id-name').value = this.identity.full_name || '';
+            document.getElementById('edit-id-bio').value = this.identity.bio || '';
+            document.getElementById('edit-identity-overlay')?.classList.remove('hidden');
+        });
+
+        document.getElementById('close-edit-identity')?.addEventListener('click', () => {
+            document.getElementById('edit-identity-overlay')?.classList.add('hidden');
+        });
+
+        document.getElementById('edit-identity-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('edit-id-name').value.trim();
+            const bio = document.getElementById('edit-id-bio').value.trim();
+
+            try {
+                const result = await this.callApi('/user/identity', 'PUT', {
+                    full_name: name,
+                    bio: bio
+                });
+
+                if (result.success) {
+                    this.showToast(i18n.t('msg_success'), 'success');
+                    document.getElementById('edit-identity-overlay')?.classList.add('hidden');
+                    await this.loadHub();
+                    if (this.currentVaultIdentity) {
+                        await this.openVault(this.currentVaultIdentity, true);
+                    }
+                }
+            } catch (err) {
+                this.showToast(err.message || i18n.t('msg_error'), 'error');
+            }
+        });
+    }
+
+    // =====================
+    // REQUIREMENT 5: ADMIN DASHBOARD
+    // =====================
+    setupAdminDashboard() {
+        // Admin Nav Tabs
+        document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.target).classList.remove('hidden');
+            });
+        });
+    }
+
+    showAdminLink() {
+        // Add a secret admin button in header or hub
+        const controls = document.getElementById('user-controls');
+        if (controls && !document.getElementById('admin-link-btn')) {
+            const adminBtn = document.createElement('button');
+            adminBtn.id = 'admin-link-btn';
+            adminBtn.className = 'btn-admin-secret';
+            adminBtn.innerHTML = '⚡';
+            adminBtn.title = 'Admin Panel';
+            adminBtn.onclick = () => {
+                this.showView('admin');
+                this.loadAdminData();
+            };
+            controls.prepend(adminBtn);
+        }
+    }
+
+    async loadAdminData() {
+        const usersList = document.getElementById('admin-users-list');
+        const identitiesList = document.getElementById('admin-identities-list');
+
+        usersList.innerHTML = `<div class="loading-text">${i18n.t('msg_loading')}</div>`;
+
+        try {
+            const result = await this.callApi('/admin/overview');
+            if (result.success) {
+                this.renderAdminUsers(result.data.users);
+                this.renderAdminIdentities(result.data.identities);
+            }
+        } catch (err) {
+            usersList.innerHTML = `<div class="error-text">Admin API Access Denied</div>`;
+        }
+    }
+
+    renderAdminUsers(users) {
+        const container = document.getElementById('admin-users-list');
+        container.innerHTML = users.map(u => `
+            <div class="admin-card">
+                <div class="admin-user-info">
+                    <h4>${u.email}</h4>
+                    <p>Points: ${u.points} | Joined: ${new Date(u.created_at).toLocaleDateString()}</p>
+                </div>
+                <div class="admin-actions">
+                    <button class="btn-ban" onclick="app.adminAction('ban', '${u.id}')">${i18n.t('admin_ban_user')}</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    renderAdminIdentities(identities) {
+        const container = document.getElementById('admin-identities-list');
+        container.innerHTML = identities.map(id => `
+            <div class="admin-card">
+                <div class="admin-user-info">
+                    <h4>${id.full_name} (@${id.id})</h4>
+                    <p>Codes: ${id.codes_count} | Author: ${id.user_email}</p>
+                </div>
+                <div class="admin-actions">
+                    <button class="btn-delete" onclick="app.adminAction('delete_identity', '${id.id}')">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async adminAction(action, target) {
+        if (!confirm('Are you sure?')) return;
+        try {
+            await this.callApi(`/admin/action`, 'POST', { action, target });
+            this.showToast('Action successful', 'success');
+            this.loadAdminData();
+        } catch (err) {
+            this.showToast(err.message, 'error');
+        }
+    }
+
+    // =====================
+    // REQUIREMENT 4: ONBOARDING
+    // =====================
+    setupOnboarding() {
+        document.getElementById('rules-close-btn')?.addEventListener('click', () => {
+            const dontShow = document.getElementById('rules-dont-show-checkbox').checked;
+            if (dontShow) {
+                localStorage.setItem('qrme_rules_seen', 'true');
+            }
+            document.getElementById('rules-overlay').classList.add('hidden');
+        });
+    }
+
+    checkOnboarding() {
+        const seen = localStorage.getItem('qrme_rules_seen');
+        if (!seen) {
+            setTimeout(() => {
+                const modal = document.getElementById('rules-overlay');
+                modal.classList.remove('hidden');
+                gsap.fromTo(modal.querySelector('.rules-container'),
+                    { opacity: 0, scale: 0.9, y: 50 },
+                    { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: 'back.out(1.7)' }
+                );
+            }, 1000);
+        }
+    }
+
+    // =====================
+    // REQUIREMENT 1: FUTURISTIC GLYPHS
+    // =====================
+    generateFuturisticGlyph(serviceName, color = '#f0ff42') {
+        const service = serviceName.toLowerCase();
+        let paths = "";
+        let animClass = "f-glyph-anim";
+
+        if (service.includes('instagram') || service.includes('social') || service.includes('facebook') || service.includes('tiktok')) {
+            paths = `
+                <path class="f-glyph-shape" d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" style="color: ${color}"/>
+                <circle class="f-glyph-shape" cx="12" cy="12" r="5" style="color: ${color}; opacity: 0.5"/>
+                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="2" style="fill: ${color}"/>
+            `;
+        } else if (service.includes('youtube') || service.includes('video') || service.includes('netflix')) {
+            paths = `
+                <path class="f-glyph-shape" d="M7 4L19 12L7 20V4Z" style="color: ${color}"/>
+                <path class="f-glyph-shape" d="M5 2L22 12L5 22V2Z" style="color: ${color}; opacity: 0.3"/>
+            `;
+        } else if (service.includes('web') || service.includes('link') || service.includes('portfolio')) {
+            paths = `
+                <circle class="f-glyph-shape" cx="12" cy="12" r="9" style="color: ${color}"/>
+                <path class="f-glyph-shape" d="M12 3V21M3 12H21" style="color: ${color}; opacity: 0.4"/>
+                <circle class="f-glyph-shape" cx="12" cy="12" r="3" style="fill: ${color}"/>
+            `;
+        } else {
+            paths = `
+                <path class="f-glyph-shape" d="M12 2L2 12L12 22L22 12L12 2Z" style="color: ${color}"/>
+                <path class="f-glyph-shape" d="M12 6L6 12L12 18L18 12L12 6Z" style="color: ${color}; opacity: 0.5"/>
+                <rect class="f-glyph-shape" x="11" y="11" width="2" height="2" style="fill: ${color}"/>
+            `;
+        }
+
+        return `
+            <div class="f-glyph ${animClass}">
+                <svg viewBox="0 0 24 24" width="40" height="40">
+                    ${paths}
+                </svg>
+            </div>
+        `;
     }
 }
 

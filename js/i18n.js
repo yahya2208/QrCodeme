@@ -145,7 +145,45 @@ const i18n = {
 
             // Footer
             footer_made_with: 'صُنع بـ',
-            footer_for: 'لمستقبل رقمي آمن'
+            footer_for: 'لمستقبل رقمي آمن',
+
+            // NEW: Privacy Policy
+            privacy_title: 'سياسة الخصوصية',
+            privacy_link: 'سياسة الخصوصية',
+            privacy_last_update: 'آخر تحديث: 2024/01/28',
+
+            // NEW: Game Rules (Onboarding)
+            rules_title: 'قانون اللعبة',
+            rules_subtitle: 'كيف تسيطر على المستقبل؟',
+            rules_desc: 'نظام QRme يعتمد على التفاعل الذكي والقيمة المتبادلة.',
+            rules_point1: '🚀 الهويات الأعلى نقاطًا تظهر أولاً في قائمة الاكتشاف.',
+            rules_point2: '⭐ اكسب +5 نقاط عن كل شخص يفتح أحد روابطك.',
+            rules_point3: '🌍 شارك التطبيق لزيادة انتشار هويتك الرقمية.',
+            rules_point4: '⛔ الغش أو محاولة التلاعب تخصم -5 نقاط وقد تؤدي للحظر النهائي.',
+            rules_acknowledge: 'فهمت القواعد، فلنبدأ!',
+            rules_dont_show: 'لا تظهر هذه الرسالة مرة أخرى',
+
+            // NEW: Curiosity Trap
+            trap_title: 'هذا مجرد كود...',
+            trap_subtitle: 'ماذا لو كان هذا كودك الخاص؟ هويتك الرقمية في انتظارك.',
+            trap_btn: '✨ أنشئ هويتك الآن',
+
+            // NEW: Admin Dashboard
+            admin_title: 'وضع التحكم الشامل',
+            admin_users: 'المستخدمون',
+            admin_identities: 'الهويات',
+            admin_codes: 'الأكواد',
+            admin_stats_growth: 'نمو المنصة',
+            admin_top_identities: 'أعلى الهويات',
+            admin_ban_user: 'حظر',
+            admin_delete: 'حذف',
+            admin_adjust_points: 'تعديل النقاط',
+
+            // NEW: Identity Edit
+            edit_identity_title: 'تعديل الهوية الرقمية',
+            edit_identity_name: 'اسم الهوية',
+            edit_identity_bio: 'النبذة التعريفية',
+            edit_identity_save: 'حفظ التعديلات'
         },
 
         // ============================================
@@ -206,6 +244,8 @@ const i18n = {
             vault_visitor_badge: 'Visitor',
             vault_tap_qr: 'Tap for QR',
             vault_add_code: 'Add Code',
+            vault_per_count: 'scans/views',
+            vault_total_engagement: 'Total Engagement',
 
             // Code Creation
             code_modal_title: 'Add New Code',
@@ -280,8 +320,47 @@ const i18n = {
 
             // Footer
             footer_made_with: 'Made with',
-            footer_for: 'for a secure digital future'
+            footer_for: 'for a secure digital future',
+
+            // NEW: Privacy Policy
+            privacy_title: 'Privacy Policy',
+            privacy_link: 'Privacy Policy',
+            privacy_last_update: 'Last Update: 2024/01/28',
+
+            // NEW: Game Rules (Onboarding)
+            rules_title: 'The Game Law',
+            rules_subtitle: 'How to dominate the future?',
+            rules_desc: 'QRme system relies on smart interaction and mutual value.',
+            rules_point1: '🚀 Higher points identities appear first in the Discovery Corridor.',
+            rules_point2: '⭐ Earn +5 points every time someone opens one of your links.',
+            rules_point3: '🌍 Share the app to increase your digital identity reach.',
+            rules_point4: '⛔ Cheating or tampering attempts deduct -5 points and may lead to a ban.',
+            rules_acknowledge: 'I understand the rules, let’s go!',
+            rules_dont_show: "Don't show this again",
+
+            // NEW: Curiosity Trap
+            trap_title: 'This is just a code...',
+            trap_subtitle: 'What if this was your own code? Your digital identity is waiting.',
+            trap_btn: '✨ Create Your Identity Now',
+
+            // NEW: Admin Dashboard
+            admin_title: 'Global Control Mode',
+            admin_users: 'Users',
+            admin_identities: 'Identities',
+            admin_codes: 'Codes',
+            admin_stats_growth: 'Platform Growth',
+            admin_top_identities: 'Top Identities',
+            admin_ban_user: 'Ban',
+            admin_delete: 'Delete',
+            admin_adjust_points: 'Adjust Points',
+
+            // NEW: Identity Edit
+            edit_identity_title: 'Edit Digital Identity',
+            edit_identity_name: 'Identity Name',
+            edit_identity_bio: 'Biography',
+            edit_identity_save: 'Save Changes'
         }
+
     },
 
     // Initialize localization

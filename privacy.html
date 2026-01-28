@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRme | Privacy Policy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Cairo:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030303;
+            --card: #0a0a0a;
+            --accent: #f0ff42;
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        [lang="en"] { direction: ltr; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Cairo', 'Outfit', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .logo .accent { color: var(--accent); }
+
+        .lang-switch {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        h1 { font-size: 28px; margin-bottom: 10px; }
+        .last-update { color: var(--accent); font-size: 14px; margin-bottom: 30px; }
+
+        section { margin-bottom: 30px; }
+        h2 { font-size: 20px; color: var(--accent); margin-bottom: 15px; }
+        p { line-height: 1.6; color: var(--text-dim); margin-bottom: 10px; }
+        ul { color: var(--text-dim); padding-inline-start: 20px; }
+        li { margin-bottom: 8px; line-height: 1.4; }
+
+        .footer-note {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid var(--accent);
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover {
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo"><span class="accent">QR</span>me</div>
+            <button class="lang-switch" onclick="toggleLang()">Switch to English</button>
+        </header>
+
+        <div id="content-ar">
+            <h1>سياسة الخصوصية</h1>
+            <p class="last-update">آخر تحديث: 28 يناير 2026</p>
+
+            <section>
+                <h2>1. المعلومات التي نجمعها</h2>
+                <p>نحن نجمع الحد الأدنى من البيانات اللازمة لتشغيل هويتك الرقمية:</p>
+                <ul>
+                    <li>الاسم كما تقدمه عند التسجيل.</li>
+                    <li>البريد الإلكتروني للتحقق وتأمين الحساب.</li>
+                    <li>روابط التواصل والحسابات التي تختار إضافتها لهويتك.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>2. كيف نستخدم بياناتك</h2>
+                <p>تُستخدم بياناتك فقط من أجل:</p>
+                <ul>
+                    <li>عرض هويتك الرقمية لمن يمسح رمز الـ QR الخاص بك.</li>
+                    <li>تخصيص تجربتك داخل التطبيق.</li>
+                    <li>منع إساءة الاستخدام والاحتيال.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>3. حماية البيانات</h2>
+                <p>نستخدم تقنيات تشفير متطورة لحماية بياناتك الشخصية والروابط الخاصة بك. نحن لا نبيع بياناتك لأي طرف ثالث ولا نشاركها لأغراض تسويقية.</p>
+            </section>
+
+            <section>
+                <h2>4. حقوقك</h2>
+                <p>لك الحق الكامل في تعديل أو حذف هويتك وأي أكواد مرتبطة بها في أي وقت من خلال لوحة التحكم الخاصة بك.</p>
+            </section>
+
+            <a href="index.html" class="btn-back">العودة للتطبيق</a>
+        </div>
+
+        <div id="content-en" style="display: none;">
+            <h1>Privacy Policy</h1>
+            <p class="last-update">Last Update: January 28, 2026</p>
+
+            <section>
+                <h2>1. Information We Collect</h2>
+                <p>We collect the minimum data necessary to operate your digital identity:</p>
+                <ul>
+                    <li>Name as provided during registration.</li>
+                    <li>Email address for verification and account security.</li>
+                    <li>Social links and accounts you choose to add to your identity.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>2. How We Use Your Data</h2>
+                <p>Your data is used only for:</p>
+                <ul>
+                    <li>Displaying your digital identity to those who scan your QR code.</li>
+                    <li>Personalizing your experience within the app.</li>
+                    <li>Preventing abuse and fraud.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>3. Data Protection</h2>
+                <p>We use advanced encryption technologies to protect your personal data and links. We do not sell your data to any third party nor share it for marketing purposes.</p>
+            </section>
+
+            <section>
+                <h2>4. Your Rights</h2>
+                <p>You have the full right to edit or delete your identity and any associated codes at any time through your dashboard.</p>
+            </section>
+
+            <a href="index.html" class="btn-back">Back to App</a>
+        </div>
+
+        <div class="footer-note">
+            &copy; 2026 QRme Nexus Protocol. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'ar';
+        function toggleLang() {
+            const ar = document.getElementById('content-ar');
+            const en = document.getElementById('content-en');
+            const btn = document.querySelector('.lang-switch');
+            const html = document.documentElement;
+
+            if (currentLang === 'ar') {
+                ar.style.display = 'none';
+                en.style.display = 'block';
+                btn.textContent = 'العربية';
+                html.lang = 'en';
+                html.dir = 'ltr';
+                currentLang = 'en';
+            } else {
+                ar.style.display = 'block';
+                en.style.display = 'none';
+                btn.textContent = 'Switch to English';
+                html.lang = 'ar';
+                html.dir = 'rtl';
+                currentLang = 'ar';
+            }
+        }
+
+        // Auto-detect lang from localStorage
+        const savedLang = localStorage.getItem('qrme_lang');
+        if (savedLang === 'en' && currentLang === 'ar') toggleLang();
+    </script>
+</body>
+</html>

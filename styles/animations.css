@@ -39,7 +39,7 @@
     }
 }
 
-[dir="rtl"] @keyframes slideInRight {
+@keyframes slideInLeft {
     from {
         opacity: 0;
         transform: translateX(-50px);
@@ -264,4 +264,23 @@
 .discovery-card:hover,
 .vault-item:hover {
     animation: neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes pulsing {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+.pulsing {
+    animation: pulsing 2s ease-in-out infinite;
+    transform-origin: center;
 }

@@ -108,6 +108,7 @@
                 <div class="auth-footer">
                     <p><span data-t="login_no_account">ليس لديك حساب؟</span> <button class="link-btn" id="goto-register"
                             data-t="login_register_link">انضم الآن</button></p>
+                    <a href="privacy.html" class="privacy-link" data-t="privacy_link">سياسة الخصوصية</a>
                 </div>
             </div>
         </section>
@@ -158,6 +159,7 @@
                 <div class="auth-footer">
                     <p><span data-t="register_have_account">لديك حساب؟</span> <button class="link-btn" id="goto-login"
                             data-t="register_login_link">سجّل دخولك</button></p>
+                    <a href="privacy.html" class="privacy-link" data-t="privacy_link">سياسة الخصوصية</a>
                 </div>
             </div>
         </section>
@@ -246,6 +248,35 @@
                     <div class="loading-text">جاري التحميل...</div>
                 </div>
             </div>
+
+            <!-- Hub Footer -->
+            <footer class="app-footer">
+                <p><span data-t="footer_made_with">صُنع بـ</span> ❤️ <span data-t="footer_for">لمستقبل رقمي آمن</span>
+                </p>
+                <a href="privacy.html" class="footer-privacy-link" data-t="privacy_link">سياسة الخصوصية</a>
+            </footer>
+        </section>
+
+        <!-- ========== ADMIN VIEW ========== -->
+        <section id="view-admin" class="page hidden">
+            <div class="admin-header">
+                <h1 data-t="admin_title">وضع التحكم الشامل</h1>
+                <div class="admin-stats-summary" id="admin-stats">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </div>
+
+            <div class="admin-nav">
+                <button class="admin-nav-btn active" data-target="admin-users-list"
+                    data-t="admin_users">المستخدمون</button>
+                <button class="admin-nav-btn" data-target="admin-identities-list"
+                    data-t="admin_identities">الهويات</button>
+            </div>
+
+            <div id="admin-content" class="admin-content-area">
+                <div id="admin-users-list" class="admin-tab-content"></div>
+                <div id="admin-identities-list" class="admin-tab-content hidden"></div>
+            </div>
         </section>
 
         <!-- ========== VAULT MODAL ========== -->
@@ -271,6 +302,13 @@
                 <div id="vault-grid" class="vault-grid"></div>
 
                 <div id="vault-actions" class="vault-actions hidden">
+                    <button class="btn-edit-identity" id="edit-identity-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor"
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                        </svg>
+                        <span data-t="btn_edit">تعديل الهوية</span>
+                    </button>
                     <button class="btn-add-code" id="add-code-btn">
                         <svg viewBox="0 0 24 24" width="20" height="20">
                             <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
@@ -278,64 +316,129 @@
                         <span data-t="vault_add_code">إضافة كود</span>
                     </button>
                 </div>
+
+                <!-- Curiosity Trap Overlay -->
+                <div id="curiosity-trap" class="curiosity-trap hidden">
+                    <div class="trap-content">
+                        <h3 data-t="trap_title">هذا مجرد كود...</h3>
+                        <p data-t="trap_subtitle">ماذا لو كان هذا كودك؟</p>
+                        <button class="btn-primary" id="trap-cta-btn" data-t="trap_btn">✨ أنشئ هويتك الآن</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- ========== ADD CODE MODAL (Step-Based) ========== -->
-        <div id="add-code-overlay" class="code-modal hidden">
-            <div class="code-modal-container">
-                <div class="code-modal-header">
-                    <button class="btn-back-step hidden" id="back-step-btn">
-                        <svg viewBox="0 0 24 24" width="20" height="20">
-                            <path fill="currentColor"
-                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-                        </svg>
+        <!-- ========== EDIT IDENTITY MODAL ========== -->
+        <div id="edit-identity-overlay" class="modal-overlay hidden">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h2 data-t="edit_identity_title">تعديل الهوية</h2>
+                    <button class="btn-close-modal" id="close-edit-identity">✕</button>
+                </div>
+                <form id="edit-identity-form">
+                    <div class="input-group">
+                        <label data-t="edit_identity_name">اسم الهوية</label>
+                        <input type="text" id="edit-id-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label data-t="edit_identity_bio">النبذة</label>
+                        <textarea id="edit-id-bio"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full" data-t="edit_identity_save">حفظ
+                        التعديلات</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========== GAME RULES MODAL ========== -->
+        <div id="rules-overlay" class="rules-modal-overlay hidden">
+            <div class="rules-container">
+                <div class="rules-header">
+                    <div class="rules-icon">📜</div>
+                    <h2 data-t="rules_title">قانون اللعبة</h2>
+                    <p data-t="rules_subtitle">كيف تسيطر على المستقبل؟</p>
+                </div>
+                <div class="rules-content">
+                    <div class="rule-item">
+                        <span class="rule-text" data-t="rules_point1"></span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-text" data-t="rules_point2"></span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-text" data-t="rules_point3"></span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-text" data-t="rules_point4"></span>
+                    </div>
+                </div>
+                <div class="rules-footer">
+                    <div class="dont-show-again">
+                        <input type="checkbox" id="rules-dont-show-checkbox">
+                        <label for="rules-dont-show-checkbox" data-t="rules_dont_show">لا تظهر مرة أخرى</label>
+                    </div>
+                    <button class="btn-primary btn-full" id="rules-close-btn" data-t="rules_acknowledge">فهمت
+                        القواعد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- ========== ADD CODE MODAL (Step-Based) ========== -->
+    <div id="add-code-overlay" class="code-modal hidden">
+        <div class="code-modal-container">
+            <div class="code-modal-header">
+                <button class="btn-back-step hidden" id="back-step-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                    </svg>
+                </button>
+                <h2 id="code-modal-title" data-t="code_modal_title">إضافة كود جديد</h2>
+                <button class="btn-close-code" id="close-code-btn">✕</button>
+            </div>
+
+            <!-- Step 1: Select Category -->
+            <div id="step-category" class="code-step active">
+                <p class="step-label" data-t="code_step_category">اختر المجال</p>
+                <div id="category-list" class="category-grid"></div>
+            </div>
+
+            <!-- Step 2: Select Service -->
+            <div id="step-service" class="code-step hidden">
+                <p class="step-label" data-t="code_step_service">اختر الخدمة</p>
+                <div id="service-grid" class="service-grid"></div>
+            </div>
+
+            <!-- Step 3: Enter Value -->
+            <div id="step-form" class="code-step hidden">
+                <div class="selected-service-preview" id="selected-service-preview"></div>
+                <form id="code-value-form">
+                    <div class="input-group">
+                        <label id="code-value-label" data-t="code_value_label">الرابط أو الرقم</label>
+                        <input type="text" id="code-value-input" required>
+                    </div>
+                    <div class="input-group">
+                        <label data-t="code_name_label">اسم مختصر (اختياري)</label>
+                        <input type="text" id="code-name-input" data-t-placeholder="code_name_label">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">
+                        <span data-t="code_save_btn">إنشاء الكود</span>
                     </button>
-                    <h2 id="code-modal-title" data-t="code_modal_title">إضافة كود جديد</h2>
-                    <button class="btn-close-code" id="close-code-btn">✕</button>
-                </div>
+                </form>
+            </div>
 
-                <!-- Step 1: Select Category -->
-                <div id="step-category" class="code-step active">
-                    <p class="step-label" data-t="code_step_category">اختر المجال</p>
-                    <div id="category-list" class="category-grid"></div>
-                </div>
-
-                <!-- Step 2: Select Service -->
-                <div id="step-service" class="code-step hidden">
-                    <p class="step-label" data-t="code_step_service">اختر الخدمة</p>
-                    <div id="service-grid" class="service-grid"></div>
-                </div>
-
-                <!-- Step 3: Enter Value -->
-                <div id="step-form" class="code-step hidden">
-                    <div class="selected-service-preview" id="selected-service-preview"></div>
-                    <form id="code-value-form">
-                        <div class="input-group">
-                            <label id="code-value-label" data-t="code_value_label">الرابط أو الرقم</label>
-                            <input type="text" id="code-value-input" required>
-                        </div>
-                        <div class="input-group">
-                            <label data-t="code_name_label">اسم مختصر (اختياري)</label>
-                            <input type="text" id="code-name-input" data-t-placeholder="code_name_label">
-                        </div>
-                        <button type="submit" class="btn-primary btn-full">
-                            <span data-t="code_save_btn">إنشاء الكود</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Step Progress -->
-                <div class="step-progress">
-                    <div class="step-dot active" data-step="1"></div>
-                    <div class="step-dot" data-step="2"></div>
-                    <div class="step-dot" data-step="3"></div>
-                </div>
+            <!-- Step Progress -->
+            <div class="step-progress">
+                <div class="step-dot active" data-step="1"></div>
+                <div class="step-dot" data-step="2"></div>
+                <div class="step-dot" data-step="3"></div>
             </div>
         </div>
+    </div>
 
-        <!-- Toast Container -->
-        <div id="toast-container" class="toast-container"></div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
     </div>
 
     <!-- Scripts -->
