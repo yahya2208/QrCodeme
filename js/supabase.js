@@ -3,7 +3,16 @@
 // All database and auth operations are proxied through the backend server.
 // Direct Supabase interaction is strictly forbidden.
 
-const API_BASE = 'http://localhost:3001/api';
+// Smart API Base: Detect local development environment
+const hostname = window.location.hostname;
+const isLocal = hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.startsWith('192.168.') ||
+    hostname.startsWith('10.') ||
+    hostname.endsWith('.local');
+
+const API_BASE = isLocal ? `http://${hostname}:3001/api` : window.location.origin + '/api';
+console.log(`[SUPABASE] API Base set to: ${API_BASE}`);
 
 /**
  * Custom Supabase Client Mock
