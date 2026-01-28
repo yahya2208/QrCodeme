@@ -27,25 +27,30 @@ const PORT = process.env.PORT || 3001;
 // SECURITY MIDDLEWARE
 // ===================
 
-// Helmet: Set security headers
-app.use(helmet());
-
-// CORS: Allow only specified origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
+// CORS: Allow origins (MUST be before other middleware for preflight)
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5500', 'http://localhost:5173'];
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        // Allow any localhost origin
+        const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+
+        if (allowedOrigins.indexOf(origin) !== -1 || isLocalhost) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
     credentials: true
+}));
+
+// Helmet: Set security headers
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // Rate Limiting: Prevent abuse
@@ -160,6 +165,84 @@ app.get('/r/:referrerId', async (req, res) => {
     } catch (err) {
         console.error('[REFERRAL REDIRECT ERROR]', err.message);
         res.redirect('/');
+    }
+});
+
+/**
+ * GET /q/:codeId - QR Code Scan Redirect
+ * This is the URL encoded in printed QR codes.
+ * When scanned, it:
+ * 1. Records the scan in shop_stats
+ * 2. Redirects to the actual destination (Facebook, Instagram, etc.)
+ */
+app.get('/q/:codeId', async (req, res) => {
+    try {
+        const codeId = parseInt(req.params.codeId, 10);
+
+        if (isNaN(codeId)) {
+            console.error('[QR SCAN] Invalid code ID');
+            return res.status(400).send('Invalid QR Code');
+        }
+
+        console.log(`[QR SCAN] Code ${codeId} scanned!`);
+
+        // 1. Get the code's destination URL
+        const { data: shop, error: shopError } = await supabase
+            .from('shops')
+            .select('id, value, name, service_id')
+            .eq('id', codeId)
+            .single();
+
+        if (shopError || !shop) {
+            console.error('[QR SCAN] Code not found:', codeId);
+            const frontendUrl = (process.env.ALLOWED_ORIGINS?.split(',')[0]) || 'http://localhost:5500';
+            return res.redirect(frontendUrl);
+        }
+
+        // 2. Record the scan (increment views counter)
+        const { error: trackError } = await supabase
+            .from('shop_stats')
+            .upsert({
+                shop_id: codeId,
+                total_scans: 1,
+                last_scan_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'shop_id',
+                ignoreDuplicates: false
+            });
+
+        // If upsert didn't work, try increment
+        if (trackError) {
+            console.log('[QR SCAN] Upsert failed, trying RPC...');
+            await supabase.rpc('record_scan', {
+                p_qr_code_id: String(codeId),
+                p_shop_id: codeId,
+                p_source: 'qr_scan'
+            });
+        } else {
+            // Increment the counter manually
+            await supabase.rpc('record_view', {
+                p_shop_id: codeId,
+                p_source: 'qr_scan'
+            });
+        }
+
+        console.log(`[QR SCAN] Recorded scan for code ${codeId}, redirecting to: ${shop.value}`);
+
+        // 3. Redirect to the actual destination
+        let destination = shop.value;
+
+        // Ensure the URL is valid
+        if (!destination.startsWith('http://') && !destination.startsWith('https://')) {
+            destination = 'https://' + destination;
+        }
+
+        res.redirect(destination);
+    } catch (err) {
+        console.error('[QR SCAN ERROR]', err.message);
+        const frontendUrl = (process.env.ALLOWED_ORIGINS?.split(',')[0]) || 'http://localhost:5500';
+        res.redirect(frontendUrl);
     }
 });
 

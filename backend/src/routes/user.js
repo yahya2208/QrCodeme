@@ -54,10 +54,6 @@ router.post('/share', protect, async (req, res, next) => {
     }
 });
 
-/**
- * POST /api/user/identity
- * Private: Create a new Nexus Identity for the user
- */
 router.post('/identity', protect, async (req, res, next) => {
     try {
         const { full_name, bio } = req.body;
@@ -66,7 +62,22 @@ router.post('/identity', protect, async (req, res, next) => {
             return res.status(400).json({ success: false, error: 'Full name is required' });
         }
 
-        // Generate a random Nexus ID (nx-XXXXXX)
+        // 1. Check if user already has an identity
+        const { data: existing } = await supabase
+            .from('nexus_identities')
+            .select('id')
+            .eq('user_id', req.user.id)
+            .maybeSingle();
+
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                error: 'Identity already exists',
+                data: existing
+            });
+        }
+
+        // 2. Generate a random Nexus ID (nx-XXXXXX)
         const nexusId = `nx-${Math.random().toString(36).substring(2, 8)}`;
 
         const { data, error } = await supabase

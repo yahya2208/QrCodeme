@@ -17,6 +17,12 @@ class QRmeApp {
         this.currentVaultIdentity = null;
         this.editingCodeId = null;
         this.userPoints = 0;
+        this.statsInterval = null;
+        this.currentStats = {
+            total_identities: 0,
+            total_codes: 0,
+            total_network_reach: 0
+        };
     }
 
     /**
@@ -72,6 +78,7 @@ class QRmeApp {
 
         setTimeout(() => {
             document.getElementById('app-loader')?.classList.add('hidden');
+            this.startStatsPolling(); // Start polling after initial load
         }, 1000);
     }
 
@@ -240,12 +247,40 @@ class QRmeApp {
         document.getElementById('back-to-login')?.addEventListener('click', () => this.showView('login'));
         document.getElementById('close-vault-btn')?.addEventListener('click', () => {
             document.getElementById('vault-overlay')?.classList.add('hidden');
+            document.getElementById('global-back-btn')?.classList.add('hidden');
+        });
+
+        // Global Back Button
+        document.getElementById('global-back-btn')?.addEventListener('click', () => {
+            const vault = document.getElementById('vault-overlay');
+            if (vault && !vault.classList.contains('hidden')) {
+                vault.classList.add('hidden');
+                document.getElementById('global-back-btn')?.classList.add('hidden');
+            } else {
+                this.showView('hub');
+                document.getElementById('global-back-btn')?.classList.add('hidden');
+            }
         });
     }
 
     showView(viewName) {
         document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
         document.getElementById(`view-${viewName}`)?.classList.remove('hidden');
+
+        // Show global back button if not in Hub
+        const backBtn = document.getElementById('global-back-btn');
+        if (backBtn) {
+            if (viewName !== 'hub' && viewName !== 'login') {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+        }
+
+        // Ensure vault is hidden if changing view
+        if (viewName !== 'hub') {
+            document.getElementById('vault-overlay')?.classList.add('hidden');
+        }
     }
 
     // =====================
@@ -281,15 +316,40 @@ class QRmeApp {
         try {
             const result = await this.callApi('/discovery/stats');
             if (result.success) {
-                const stats = result.data;
-
-                this.animateNumber('stat-identities', stats.total_identities);
-                this.animateNumber('stat-codes', stats.total_codes);
-                this.animateNumber('stat-reach', stats.total_network_reach);
+                console.log('[STATS] Received:', result.data);
+                this.updateStats(result.data);
             }
         } catch (err) {
-            console.warn('Stats fetch failed:', err.message);
+            console.warn('[STATS ERROR]', err.message);
         }
+    }
+
+    startStatsPolling() {
+        if (this.statsInterval) clearInterval(this.statsInterval);
+
+        // Poll every 5 seconds for "real-time" feel
+        this.statsInterval = setInterval(() => {
+            this.loadProjectStats();
+        }, 5000);
+    }
+
+    updateStats(newStats) {
+        // Sync identities
+        if (newStats.total_identities !== this.currentStats.total_identities) {
+            this.animateNumber('stat-identities', newStats.total_identities);
+        }
+
+        // Sync codes
+        if (newStats.total_codes !== this.currentStats.total_codes) {
+            this.animateNumber('stat-codes', newStats.total_codes);
+        }
+
+        // Sync reach
+        if (newStats.total_network_reach !== this.currentStats.total_network_reach) {
+            this.animateNumber('stat-reach', newStats.total_network_reach);
+        }
+
+        this.currentStats = { ...newStats };
     }
 
     animateNumber(id, finalValue) {
@@ -365,11 +425,25 @@ class QRmeApp {
 
         try {
             const result = await this.callApi(`/discovery/vault/${identityId}`);
-            const codes = result.data;
+            const codes = result.data || [];
 
-            ownerLabel.textContent = codes[0]?.owner_name || (isOwner ? i18n.t('vault_my_title') : i18n.t('vault_title'));
+            // Robust ownership check
+            const realIsOwner = isOwner || (codes.length > 0 && codes[0].is_owner === true);
+            this.isOwnerViewing = realIsOwner;
 
-            vaultActions.classList.toggle('hidden', !isOwner);
+            // Set owner name
+            ownerLabel.textContent = (codes.length > 0 && codes[0].owner_name)
+                ? codes[0].owner_name
+                : (realIsOwner ? i18n.t('vault_my_title') : i18n.t('vault_title'));
+
+            // Set Total Reach
+            const totalReachEl = document.getElementById('identity-total-scans');
+            if (totalReachEl) {
+                this.animateNumber('identity-total-scans', result.meta?.total_reach || 0);
+            }
+
+            vaultActions.classList.toggle('hidden', !realIsOwner);
+            document.getElementById('global-back-btn')?.classList.remove('hidden');
             grid.innerHTML = '';
 
             if (codes && codes.length > 0) {
@@ -379,7 +453,7 @@ class QRmeApp {
                     item.setAttribute('data-code-id', code.id);
 
                     let actionsHTML = '';
-                    if (isOwner) {
+                    if (realIsOwner) {
                         actionsHTML = `
                             <div class="vault-item-actions">
                                 <button class="btn-edit-code" data-id="${code.id}" title="${i18n.t('btn_edit')}">
@@ -391,27 +465,47 @@ class QRmeApp {
                             </div>`;
                     }
 
+                    // Map service icons to SVGs if they are just names
+                    let iconSVG = code.service_icon;
+                    if (!iconSVG || !iconSVG.includes('<svg')) {
+                        iconSVG = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+                    }
+
                     item.innerHTML = `
                         <div class="vault-item-main">
                             <div class="vault-item-icon" style="color: ${code.service_color || '#f0ff42'}">
-                                ${code.service_icon || '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'}
+                                ${iconSVG}
                             </div>
                             <div class="vault-item-info">
                                 <div class="vault-item-name">${code.name || code.service_name}</div>
+                                <div class="vault-item-stats">
+                                    <div class="v-stat highlight">
+                                        <span class="v-stat-icon">📈</span>
+                                        <span class="v-stat-value">${(parseInt(code.scans) || 0) + (parseInt(code.views) || 0)}</span>
+                                        <span class="v-stat-label">${i18n.t('vault_per_count')}</span>
+                                    </div>
+                                </div>
                                 <div class="vault-item-hint">${i18n.t('vault_tap_qr')}</div>
                             </div>
                         </div>
                         ${actionsHTML}`;
 
-                    item.querySelector('.vault-item-main').onclick = () => {
+                    // Use a flag to prevent multiple rapid clicks
+                    let isTracking = false;
+
+                    item.querySelector('.vault-item-main').onclick = (e) => {
+                        e.stopPropagation();
+
                         if (code.display_value && code.display_value !== '••••••••') {
-                            this.showQRModal(code.display_value, code.name || code.service_name, code.service_color);
+                            // Pass code.id so QR points to tracking URL
+                            // Tracking happens when the printed QR is scanned, not when clicking here
+                            this.showQRModal(code.display_value, code.name || code.service_name, code.service_color, code.id);
                         } else {
                             this.showEncryptedQRMessage(code.name || code.service_name);
                         }
                     };
 
-                    if (isOwner) {
+                    if (realIsOwner) {
                         item.querySelector('.btn-edit-code').onclick = (e) => { e.stopPropagation(); this.openEditModal(code); };
                         item.querySelector('.btn-delete-code').onclick = (e) => { e.stopPropagation(); this.deleteCode(code.id); };
                     }
@@ -463,7 +557,7 @@ class QRmeApp {
         }
     }
 
-    showQRModal(value, title, color = '#f0ff42') {
+    showQRModal(value, title, color = '#f0ff42', codeId = null) {
         const modal = document.getElementById('qr-display-modal');
         const container = document.getElementById('qr-code-container');
         const titleEl = document.getElementById('qr-display-title');
@@ -477,10 +571,19 @@ class QRmeApp {
         titleEl.textContent = title;
         container.innerHTML = '';
 
+        // Determine QR content
+        // If codeId is provided, use tracking URL to count scans from printed QR
+        let qrContent = value;
+        if (codeId) {
+            // Use the backend tracking endpoint
+            qrContent = `${this.apiBase.replace('/api', '')}/q/${codeId}`;
+            console.log('[QR] Generated tracking URL:', qrContent);
+        }
+
         // Generate QR Code
         try {
             new QRCode(container, {
-                text: value,
+                text: qrContent,
                 width: 280,
                 height: 280,
                 colorDark: "#000000",

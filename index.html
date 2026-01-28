@@ -46,6 +46,11 @@
         <!-- HEADER -->
         <header class="main-header">
             <div class="header-logo">
+                <button class="btn-back-global hidden" id="global-back-btn" title="Back">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                    </svg>
+                </button>
                 <span class="logo-accent">QR</span><span class="logo-main">me</span>
             </div>
             <div class="header-actions">
@@ -229,7 +234,7 @@
                     </div>
                     <div class="stat-item highlight">
                         <span class="stat-value" id="stat-reach">0</span>
-                        <span class="stat-label">وصول الشبكة</span>
+                        <span class="stat-label" data-t="hub_reach_total">إجمالي التفاعل الناتح</span>
                     </div>
                 </div>
             </div>
@@ -247,9 +252,20 @@
         <div id="vault-overlay" class="vault-modal hidden">
             <div class="vault-container">
                 <div class="vault-header">
-                    <button class="btn-close-vault" id="close-vault-btn">✕</button>
+                    <button class="btn-back-vault" id="close-vault-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor"
+                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                        </svg>
+                    </button>
                     <h2 id="vault-owner-name" data-t="vault_title">الخزنة</h2>
-                    <span class="vault-badge" id="vault-badge" data-t="qr_encrypted_title">مشفرة</span>
+                    <div class="vault-meta">
+                        <span class="vault-badge" id="vault-badge" data-t="qr_encrypted_title">مشفرة</span>
+                        <div class="vault-total-reach" id="vault-total-reach" title="Total Scans">
+                            <span class="reach-icon">📊</span>
+                            <span class="reach-count" id="identity-total-scans">0</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="vault-grid" class="vault-grid"></div>

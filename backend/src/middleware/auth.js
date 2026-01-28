@@ -19,11 +19,13 @@ const protect = async (req, res, next) => {
         }
 
         // Verify token with Supabase (Server-side verification)
-        const { data: { user }, error } = await supabase.auth.getUser(token);
+        const { data, error } = await supabase.auth.getUser(token);
 
-        if (error || !user) {
+        if (error || !data || !data.user) {
             return res.status(401).json({ success: false, error: 'Invalid or expired token.' });
         }
+
+        const user = data.user;
 
         // Attach user to request object
         req.user = user;

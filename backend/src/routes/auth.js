@@ -27,8 +27,8 @@ router.post('/login', async (req, res, next) => {
                 console.log(`[AUTH] Attempting emergency auto-confirm for: ${email}`);
 
                 // Find user ID by email
-                const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-                const targetUser = users?.find(u => u.email === email);
+                const { data: listData, error: listError } = await supabase.auth.admin.listUsers();
+                const targetUser = listData?.users?.find(u => u.email === email);
 
                 if (targetUser) {
                     await supabase.auth.admin.updateUserById(targetUser.id, { email_confirm: true });
@@ -152,11 +152,13 @@ router.get('/me', async (req, res, next) => {
         }
 
         const token = authHeader.split(' ')[1];
-        const { data: { user }, error } = await supabase.auth.getUser(token);
+        const { data, error } = await supabase.auth.getUser(token);
 
-        if (error || !user) {
+        if (error || !data || !data.user) {
             return res.status(401).json({ success: false, error: 'Invalid token' });
         }
+
+        const user = data.user;
 
         res.json({
             success: true,

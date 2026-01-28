@@ -56,6 +56,7 @@ const i18n = {
             hub_create_identity: 'تكوين هويتك الرقمية',
             hub_name_label: 'الاسم الكامل',
             hub_bio_label: 'نبذة قصيرة',
+            hub_reach_total: 'إجمالي وصول الشبكة',
             hub_create_btn: 'تكوين الهوية',
             hub_empty_discovery: 'لا توجد هويات عامة',
             hub_codes_count: 'أكواد',
@@ -68,6 +69,8 @@ const i18n = {
             vault_visitor_badge: 'زائر',
             vault_tap_qr: 'اضغط لعرض QR',
             vault_add_code: 'إضافة كود',
+            vault_per_count: 'مسحة/مشاهدة',
+            vault_total_engagement: 'إجمالي التفاعل',
 
             // Code Creation
             code_modal_title: 'إضافة كود جديد',
