@@ -54,24 +54,24 @@ router.get('/system/overview', async (req, res, next) => {
  */
 router.get('/users', async (req, res, next) => {
     try {
-        const { search, status, page = 1 } = req.query;
-        let query = supabase
-            .from('users')
-            .select(`
-                id, email, full_name, created_at, status, 
-                user_points (total_points, total_shares),
-                nexus_identities (id, full_name)
-            `);
-
+        const { search, page = 1 } = req.query;
+        let query = supabase.from('users').select('id, email, full_name, created_at, status');
         if (search) query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
-        if (status && status !== 'all') query = query.eq('status', status);
-
-        const { data, error } = await query
+        const { data: users, error: uError } = await query
             .order('created_at', { ascending: false })
             .range((page - 1) * 20, page * 20 - 1);
-
-        if (error) throw error;
-        res.json({ success: true, data });
+        if (uError) throw uError;
+        const userIds = users.map(u => u.id);
+        const [{ data: points }, { data: ids }] = await Promise.all([
+            supabase.from('user_points').select('user_id, total_points').in('user_id', userIds),
+            supabase.from('nexus_identities').select('user_id, id, full_name').in('user_id', userIds)
+        ]);
+        const merged = users.map(u => ({
+            ...u,
+            user_points: points?.find(p => p.user_id === u.id) || { total_points: 0 },
+            nexus_identities: ids?.filter(i => i.user_id === u.id) || []
+        }));
+        res.json({ success: true, data: merged });
     } catch (err) { next(err); }
 });
 
@@ -108,16 +108,18 @@ router.post('/users/action', async (req, res, next) => {
  */
 router.get('/identities', async (req, res, next) => {
     try {
-        const { data, error } = await supabase
+        const { data: ids, error: idError } = await supabase
             .from('nexus_identities')
-            .select(`
-                id, full_name, bio, created_at, user_id,
-                shops (id, name, value, service_id)
-            `)
+            .select('id, full_name, bio, created_at, user_id')
             .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        res.json({ success: true, data });
+        if (idError) throw idError;
+        const idList = ids.map(i => i.id);
+        const { data: shops } = await supabase.from('shops').select('id, name, value, identity_id').in('identity_id', idList);
+        const merged = ids.map(id => ({
+            ...id,
+            shops: shops?.filter(s => s.identity_id === id.id) || []
+        }));
+        res.json({ success: true, data: merged });
     } catch (err) { next(err); }
 });
 
