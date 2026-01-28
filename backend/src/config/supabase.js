@@ -42,7 +42,20 @@ try {
     console.log('✅ Supabase connected - Cloud storage active');
 } catch (error) {
     console.warn('⚠️ Supabase Initialization Warning:', error.message);
-    console.warn('📡 Server initialized but database operations will fail until SUPABASE_URL and SUPABASE_SERVICE_KEY are provided.');
+
+    // Create a proxy to handle calls to an uninitialized supabase client
+    // This prevents the "Cannot read properties of null (reading 'auth')" error
+    supabase = new Proxy({}, {
+        get: (target, prop) => {
+            return new Proxy({}, {
+                get: (t, p) => {
+                    return () => {
+                        throw new Error(`Database operation failed: Supabase not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY on Vercel.`);
+                    };
+                }
+            });
+        }
+    });
 }
 
 /**

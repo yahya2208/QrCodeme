@@ -28,24 +28,53 @@ const PORT = process.env.PORT || 3001;
 // ===================
 
 // CORS: Allow origins (MUST be before other middleware for preflight)
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5500', 'http://localhost:5173'];
-app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, etc.)
-        if (!origin) return callback(null, true);
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'http://localhost:5173',
+    'http://127.0.0.1:5500',
+    'http://127.0.0.1:3000'
+];
 
-        // Allow any localhost origin
-        const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:');
+if (process.env.ALLOWED_ORIGINS) {
+    allowedOrigins.push(...process.env.ALLOWED_ORIGINS.split(','));
+}
 
-        if (allowedOrigins.indexOf(origin) !== -1 || isLocalhost) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-    credentials: true
+app.use(cors((req, callback) => {
+    const origin = req.header('Origin');
+    const corsOptions = {
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+        credentials: true,
+        optionsSuccessStatus: 200
+    };
+
+    // 1. Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) {
+        corsOptions.origin = true;
+        return callback(null, corsOptions);
+    }
+
+    // 2. Allow any localhost origin
+    const isLocalhost = origin.startsWith('http://localhost:') ||
+        origin.startsWith('https://localhost:') ||
+        origin.startsWith('http://127.0.0.1:');
+
+    // 3. Allow same-origin (if deployed on Vercel or similar)
+    const isSameOrigin = origin.includes('vercel.app') ||
+        (process.env.VERCEL_URL && origin.includes(process.env.VERCEL_URL));
+
+    // 4. Check if origin matches allowed list
+    const isAllowedOrigin = allowedOrigins.indexOf(origin) !== -1;
+
+    if (isAllowedOrigin || isLocalhost || isSameOrigin) {
+        corsOptions.origin = true;
+    } else {
+        console.warn(`[CORS] Rejected Origin: ${origin}`);
+        corsOptions.origin = false;
+    }
+
+    callback(null, corsOptions);
 }));
 
 // Helmet: Set security headers
