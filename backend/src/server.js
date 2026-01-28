@@ -23,6 +23,9 @@ const nexusRouter = require('./routes/nexus');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy (Required for Vercel/proxied environments to get correct client IP)
+app.set('trust proxy', 1);
+
 // ===================
 // SECURITY MIDDLEWARE
 // ===================
@@ -90,7 +93,7 @@ const globalLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false
 });
-app.use('/api/', globalLimiter);
+app.use('/api', globalLimiter);
 
 // Strict Auth Limiter: Prevent brute force
 const authLimiter = rateLimit({
@@ -100,7 +103,7 @@ const authLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false
 });
-app.use('/api/auth/', authLimiter);
+app.use('/api/auth', authLimiter);
 
 // Body parsing - CRITICAL: Must be before routes
 app.use(express.json({ limit: '1mb' }));

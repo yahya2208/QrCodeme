@@ -43,19 +43,24 @@ try {
 } catch (error) {
     console.warn('⚠️ Supabase Initialization Warning:', error.message);
 
-    // Create a proxy to handle calls to an uninitialized supabase client
-    // This prevents the "Cannot read properties of null (reading 'auth')" error
-    supabase = new Proxy({}, {
+    // Create a robust recursion proxy to handle any chain of calls/properties
+    // This prevents "TypeError: ... is not a function" crashes
+    const throwNoConfig = () => {
+        throw new Error('Database operation failed: Supabase not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY on Vercel.');
+    };
+
+    const handler = {
         get: (target, prop) => {
-            return new Proxy({}, {
-                get: (t, p) => {
-                    return () => {
-                        throw new Error(`Database operation failed: Supabase not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY on Vercel.`);
-                    };
-                }
-            });
+            // Return the same proxy for any property access
+            return new Proxy(() => { }, handler);
+        },
+        apply: (target, thisArg, argumentsList) => {
+            // Throw the informative error if called as a function
+            throwNoConfig();
         }
-    });
+    };
+
+    supabase = new Proxy(() => { }, handler);
 }
 
 /**

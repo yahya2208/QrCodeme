@@ -17,12 +17,13 @@
     "author": "QR NEXUS Team",
     "license": "MIT",
     "dependencies": {
-        "@supabase/supabase-js": "^2.39.0",
-        "cors": "^2.8.5",
-        "dotenv": "^16.3.1",
-        "express": "^4.18.2",
-        "express-rate-limit": "^7.1.5",
-        "helmet": "^7.1.0",
+        "@supabase/supabase-js": "^2.93.2",
+        "cors": "^2.8.6",
+        "dotenv": "^16.6.1",
+        "express": "^4.22.1",
+        "express-rate-limit": "^7.5.1",
+        "express-validator": "^7.3.1",
+        "helmet": "^7.2.0",
         "uuid": "^9.0.1"
     },
     "devDependencies": {
