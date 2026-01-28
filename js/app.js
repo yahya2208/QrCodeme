@@ -1332,109 +1332,162 @@ class QRmeApp {
     }
 
     // =====================
-    // REQUIREMENT 5: ADMIN DASHBOARD
-    // =====================
+    // ============================================
+    // ADMIN SUPREMACY LOGIC (Requirement 1-10)
+    // ============================================
     setupAdminDashboard() {
-        // Admin Nav Tabs
-        document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+        // Tab Navigation
+        document.querySelectorAll('.admin-nav-vertical .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
+                document.querySelectorAll('.admin-nav-vertical .nav-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.admin-tab').forEach(c => c.classList.add('hidden'));
                 btn.classList.add('active');
-                document.getElementById(btn.dataset.target).classList.remove('hidden');
+                const targetId = btn.dataset.target;
+                document.getElementById(targetId).classList.remove('hidden');
+                this.loadAdminTab(targetId);
             });
+        });
+
+        document.getElementById('admin-exit-btn')?.addEventListener('click', () => this.showView('hub'));
+
+        // Search filter
+        document.getElementById('admin-user-search')?.addEventListener('input', (e) => {
+            clearTimeout(this.adminSearchTimer);
+            this.adminSearchTimer = setTimeout(() => this.loadAdminUsers(e.target.value), 500);
         });
     }
 
     showAdminLink() {
-        // Add a secret admin button in header or hub
         const controls = document.getElementById('user-controls');
         if (controls && !document.getElementById('admin-link-btn')) {
             const adminBtn = document.createElement('button');
             adminBtn.id = 'admin-link-btn';
             adminBtn.className = 'btn-admin-secret';
             adminBtn.innerHTML = '⚡';
-            adminBtn.title = 'Admin Panel';
             adminBtn.onclick = () => {
                 this.showView('admin');
-                this.loadAdminData();
+                this.loadAdminTab('admin-overview');
             };
             controls.prepend(adminBtn);
         }
     }
 
-    async loadAdminData() {
-        const adminStats = document.getElementById('admin-stats');
-        const usersList = document.getElementById('admin-users-list');
-        const identitiesList = document.getElementById('admin-identities-list');
+    async loadAdminTab(tabId) {
+        switch (tabId) {
+            case 'admin-overview': await this.loadAdminOverview(); break;
+            case 'admin-users': await this.loadAdminUsers(); break;
+            case 'admin-identities': await this.loadAdminIdentities(); break;
+            case 'admin-logs': await this.loadAdminAuditLogs(); break;
+        }
+    }
 
-        if (adminStats) adminStats.innerHTML = `<div class="loading-text">Loading Stats...</div>`;
-        usersList.innerHTML = `<div class="loading-text">Loading Users...</div>`;
-        identitiesList.innerHTML = `<div class="loading-text">Loading Identities...</div>`;
-
+    async loadAdminOverview() {
         try {
-            // 1. Load Overview Stats
-            const statsResult = await this.callApi('/admin/overview');
-            if (statsResult.success) {
-                const s = statsResult.data;
-                if (adminStats) {
-                    adminStats.innerHTML = `
-                        <div class="stat-pill">Users: <span>${s.total_users}</span></div>
-                        <div class="stat-pill">Identities: <span>${s.total_identities}</span></div>
-                        <div class="stat-pill">Codes: <span>${s.total_codes}</span></div>
-                        <div class="stat-pill">Scans: <span>${s.total_scans}</span></div>
-                    `;
-                }
+            const result = await this.callApi('/admin/system/overview');
+            if (result.success) {
+                const s = result.data.counters;
+                const grid = document.getElementById('admin-kpis');
+                grid.innerHTML = `
+                    <div class="kpi-card">
+                        <div class="kpi-label">المستخدمين</div>
+                        <div class="kpi-value">${s.users}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">الهويات</div>
+                        <div class="kpi-value">${s.identities}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">الأكواد</div>
+                        <div class="kpi-value">${s.codes}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">إجمالي المسحات</div>
+                        <div class="kpi-value">${s.total_scans}</div>
+                    </div>
+                `;
             }
-
-            // 2. Load Users
-            const usersResult = await this.callApi('/admin/users');
-            if (usersResult.success) {
-                this.renderAdminUsers(usersResult.data);
-            }
-
-            // 3. Load Identities
-            const identitiesResult = await this.callApi('/admin/identities');
-            if (identitiesResult.success) {
-                this.renderAdminIdentities(identitiesResult.data);
-            }
-        } catch (err) {
-            console.error('[ADMIN ERROR]', err);
-            usersList.innerHTML = `<div class="error-text">API Access Restricted</div>`;
-        }
+        } catch (err) { this.handleAdminError(err); }
     }
 
-    renderAdminUsers(users) {
-        const container = document.getElementById('admin-users-list');
-        if (!users || users.length === 0) {
-            container.innerHTML = '<p class="empty-text">No users found.</p>';
-            return;
-        }
-        container.innerHTML = users.map(u => `
-            <div class="admin-card">
-                <div class="admin-user-info">
-                    <h4>${u.email}</h4>
-                    <p>ID: ${u.id.slice(0, 8)} | Points: ${u.user_points?.total_points || 0}</p>
-                </div>
-            </div>
-        `).join('');
+    async loadAdminUsers(search = '') {
+        try {
+            const result = await this.callApi(`/admin/users?search=${search}`);
+            if (result.success) {
+                const tbody = document.getElementById('admin-users-tbody');
+                tbody.innerHTML = result.data.map(u => `
+                    <tr>
+                        <td>
+                            <div class="u-info">
+                                <strong>${u.full_name || 'Anonymous'}</strong><br>
+                                <span class="u-email">${u.email}</span>
+                            </div>
+                        </td>
+                        <td><span class="status-tag status-${u.status || 'active'}">${u.status || 'active'}</span></td>
+                        <td>${u.nexus_identities?.length || 0}</td>
+                        <td>${u.user_points?.total_points || 0}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button onclick="app.adminUserAction('${u.id}', 'SUSPEND')">Suspend</button>
+                                <button onclick="app.adminUserAction('${u.id}', 'BAN')">Ban</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) { this.handleAdminError(err); }
     }
 
-    renderAdminIdentities(identities) {
-        const container = document.getElementById('admin-identities-list');
-        if (!identities || identities.length === 0) {
-            container.innerHTML = '<p class="empty-text">No identities found.</p>';
-            return;
-        }
-        container.innerHTML = identities.map(id => `
-            <div class="admin-card">
-                <div class="admin-user-info">
-                    <h4>${id.full_name} (${id.id})</h4>
-                    <p>Codes: ${id.shops?.length || 0} | Bio: ${id.bio || 'No bio'}</p>
-                </div>
-            </div>
-        `).join('');
+    async adminUserAction(userId, action) {
+        const reason = prompt(`Reason for ${action}:`);
+        if (!reason) return;
+        try {
+            await this.callApi('/admin/users/action', 'POST', { userId, action, reason });
+            this.showToast('Action successful', 'success');
+            this.loadAdminUsers();
+        } catch (err) { this.showToast(err.message, 'error'); }
     }
+
+    handleAdminError(err) {
+        console.error('[ADMIN FAIL]', err);
+        this.showToast('Access Violation or Server Error', 'error');
+    }
+
+    async loadAdminIdentities() {
+        try {
+            const result = await this.callApi('/admin/identities');
+            if (result.success) {
+                const grid = document.getElementById('admin-identities-grid');
+                grid.innerHTML = result.data.map(id => `
+                    <div class="kpi-card">
+                        <div class="kpi-label">${id.id}</div>
+                        <div class="kpi-value">${id.full_name}</div>
+                        <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 10px;">
+                            Owner ID: ${id.user_id.slice(0, 8)}...<br>
+                            Codes: ${id.shops?.length || 0}
+                        </p>
+                    </div>
+                `).join('');
+            }
+        } catch (err) { this.handleAdminError(err); }
+    }
+
+    async loadAdminAuditLogs() {
+        try {
+            const result = await this.callApi('/admin/audit-logs');
+            if (result.success) {
+                const container = document.getElementById('admin-full-audit-log');
+                container.innerHTML = result.data.map(log => `
+                    <div class="audit-item" style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span style="color: var(--yellow-warm); font-weight: 700;">[${log.action}]</span>
+                        <span style="opacity: 0.6; font-size: 0.8rem;">${new Date(log.created_at).toLocaleString()}</span><br>
+                        <span>Target: ${log.target_type} (${log.target_id})</span>
+                    </div>
+                `).join('');
+            }
+        } catch (err) { this.handleAdminError(err); }
+    }
+
 
     async adminAction(action, target) {
         if (!confirm('Are you sure?')) return;

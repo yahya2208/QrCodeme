@@ -27,6 +27,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/admin.css">
     <link rel="stylesheet" href="styles/animations.css">
 </head>
 
@@ -265,25 +266,100 @@
             </footer>
         </section>
 
-        <!-- ========== ADMIN VIEW ========== -->
-        <section id="view-admin" class="page hidden">
-            <div class="admin-header">
-                <h1 data-t="admin_title">وضع التحكم الشامل</h1>
-                <div class="admin-stats-summary" id="admin-stats">
-                    <!-- Stats will be loaded here -->
+        <!-- ========== ADMIN SUPREMACY DASHBOARD ========== -->
+        <section id="view-admin" class="page hidden admin-supremacy">
+            <div class="admin-sidebar">
+                <div class="admin-sidebar-header">
+                    <span class="logo-accent">QR</span><span class="logo-main">me</span>
+                    <span class="admin-badge">ADMIN // V1</span>
+                </div>
+                <nav class="admin-nav-vertical">
+                    <button class="nav-item active" data-target="admin-overview" data-t="admin_overview">
+                        <span class="nav-icon">📊</span> <span data-t="admin_nav_stats">الإحصائيات</span>
+                    </button>
+                    <button class="nav-item" data-target="admin-users" data-t="admin_users">
+                        <span class="nav-icon">👤</span> <span data-t="admin_nav_users">المستخدمين</span>
+                    </button>
+                    <button class="nav-item" data-target="admin-identities" data-t="admin_identities">
+                        <span class="nav-icon">🆔</span> <span data-t="admin_nav_ids">الهويات</span>
+                    </button>
+                    <button class="nav-item" data-target="admin-logs" data-t="admin_logs">
+                        <span class="nav-icon">📜</span> <span data-t="admin_nav_audit">سجل النشاط</span>
+                    </button>
+                </nav>
+                <div class="admin-sidebar-footer">
+                    <button class="btn-exit-admin" id="admin-exit-btn">خروج من وضع الأدمن</button>
                 </div>
             </div>
 
-            <div class="admin-nav">
-                <button class="admin-nav-btn active" data-target="admin-users-list"
-                    data-t="admin_users">المستخدمون</button>
-                <button class="admin-nav-btn" data-target="admin-identities-list"
-                    data-t="admin_identities">الهويات</button>
-            </div>
+            <div class="admin-main-content">
+                <!-- Overview Tab -->
+                <div id="admin-overview" class="admin-tab active">
+                    <div class="content-header">
+                        <h1>نظرة عامة على النظام</h1>
+                        <p>إحصائيات حيّة لأداء منصة QRme</p>
+                    </div>
 
-            <div id="admin-content" class="admin-content-area">
-                <div id="admin-users-list" class="admin-tab-content"></div>
-                <div id="admin-identities-list" class="admin-tab-content hidden"></div>
+                    <div class="admin-stats-grid" id="admin-kpis">
+                        <!-- KPI Cards Loaded via JS -->
+                        <div class="kpi-card loading"></div>
+                        <div class="kpi-card loading"></div>
+                        <div class="kpi-card loading"></div>
+                        <div class="kpi-card loading"></div>
+                    </div>
+
+                    <div class="dashboard-bottom-grid">
+                        <div class="recent-audit-box">
+                            <h3>آخر عمليات الإدارة</h3>
+                            <div id="admin-recent-audit-list"></div>
+                        </div>
+                        <div class="top-performers-box">
+                            <h3>أفضل الأداء</h3>
+                            <div id="admin-top-performers"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="admin-users" class="admin-tab hidden">
+                    <div class="content-header">
+                        <h1>إدارة المستخدمين</h1>
+                        <div class="search-bar">
+                            <input type="text" id="admin-user-search" placeholder="بحث بالإيميل أو الاسم...">
+                        </div>
+                    </div>
+                    <div class="admin-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>المستخدم</th>
+                                    <th>الحالة</th>
+                                    <th>الهويات</th>
+                                    <th>النقاط</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Identities Tab -->
+                <div id="admin-identities" class="admin-tab hidden">
+                    <div class="content-header">
+                        <h1>إدارة الهويات</h1>
+                    </div>
+                    <div class="identities-grid" id="admin-identities-grid"></div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="admin-logs" class="admin-tab hidden">
+                    <div class="content-header">
+                        <h1>سجل نشاط النظام</h1>
+                    </div>
+                    <div class="audit-log-list" id="admin-full-audit-log"></div>
+                </div>
             </div>
         </section>
 
