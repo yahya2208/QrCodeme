@@ -1441,6 +1441,39 @@
     margin-right: auto;
 }
 
+/* Danger Zone Styles */
+.danger-zone {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 50, 50, 0.2);
+    text-align: center;
+}
+
+.danger-text {
+    font-size: 0.85rem;
+    color: #ff4444;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+.btn-danger {
+    background: rgba(255, 50, 50, 0.1);
+    color: #ff4444;
+    border: 1px solid rgba(255, 50, 50, 0.2);
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background: #ff4444;
+    color: white;
+    box-shadow: 0 0 20px rgba(255, 50, 50, 0.4);
+}
+
+
 /* Discovery Masking */
 .d-id {
     font-family: 'Space Mono', monospace;
@@ -1450,4 +1483,46 @@
     background: rgba(240, 255, 66, 0.05);
     padding: 2px 8px;
     border-radius: 4px;
+}
+
+.discovery-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.discovery-card:hover {
+    background: rgba(240, 255, 66, 0.05);
+    border-color: var(--yellow-warm);
+    transform: translateY(-5px);
+}
+
+.d-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.d-bio {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 4px 0 12px;
+    height: 1.2rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.d-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.d-badge {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
 }

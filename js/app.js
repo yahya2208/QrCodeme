@@ -429,6 +429,7 @@ class QRmeApp {
                     card.innerHTML = `
                         <div class="d-card-body">
                             <h4 class="d-name"></h4>
+                            <p class="d-bio"></p>
                             <div class="d-meta">
                                 <span class="d-id">${maskedId}</span>
                                 <span class="d-badge"></span>
@@ -436,6 +437,7 @@ class QRmeApp {
                         </div>
                     `;
                     card.querySelector('.d-name').textContent = id.full_name || 'Anonymous User';
+                    card.querySelector('.d-bio').textContent = id.bio || '';
                     card.querySelector('.d-badge').textContent = `${id.codes_count || 0} ${i18n.t('hub_codes_count')}`;
                     card.onclick = () => this.openVault(id.id, false);
                     corridor.appendChild(card);
@@ -1296,6 +1298,37 @@ class QRmeApp {
                 this.showToast(err.message || i18n.t('msg_error'), 'error');
             }
         });
+
+        document.getElementById('delete-identity-final-btn')?.addEventListener('click', () => this.deleteIdentity());
+    }
+
+    async deleteIdentity() {
+        if (!confirm(i18n.t('delete_confirm'))) return;
+
+        try {
+            const btn = document.getElementById('delete-identity-final-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '...';
+            }
+
+            const result = await this.callApi('/user/identity', 'DELETE');
+            if (result.success) {
+                this.showToast(i18n.t('msg_success'), 'success');
+                document.getElementById('edit-identity-overlay')?.classList.add('hidden');
+                document.getElementById('vault-overlay')?.classList.add('hidden');
+                this.identity = null;
+                await this.loadHub();
+            }
+        } catch (err) {
+            this.showToast(err.message || i18n.t('msg_error'), 'error');
+        } finally {
+            const btn = document.getElementById('delete-identity-final-btn');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = i18n.t('delete_identity_btn');
+            }
+        }
     }
 
     // =====================
@@ -1383,9 +1416,6 @@ class QRmeApp {
                     <h4>${u.email}</h4>
                     <p>ID: ${u.id.slice(0, 8)} | Points: ${u.user_points?.total_points || 0}</p>
                 </div>
-                <div class="admin-actions">
-                    <button class="btn-ban" onclick="app.adminAction('ban', '${u.id}')">${i18n.t('admin_ban_user')}</button>
-                </div>
             </div>
         `).join('');
     }
@@ -1401,9 +1431,6 @@ class QRmeApp {
                 <div class="admin-user-info">
                     <h4>${id.full_name} (${id.id})</h4>
                     <p>Codes: ${id.shops?.length || 0} | Bio: ${id.bio || 'No bio'}</p>
-                </div>
-                <div class="admin-actions">
-                    <button class="btn-delete" onclick="app.adminAction('delete_identity', '${id.id}')">Delete</button>
                 </div>
             </div>
         `).join('');

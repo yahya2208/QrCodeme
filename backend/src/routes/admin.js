@@ -16,6 +16,25 @@ const adminOnly = (req, res, next) => {
 };
 
 /**
+ * Audit Log Utility
+ */
+const logAdminAction = async (req, action, targetType, targetId, details = {}) => {
+    try {
+        await supabase.from('admin_audit_logs').insert({
+            admin_id: req.user.id,
+            admin_email: req.user.email,
+            action,
+            target_type: targetType,
+            target_id: targetId,
+            details,
+            ip_address: req.ip
+        });
+    } catch (err) {
+        console.error('[AUDIT LOG FAILED]', err.message);
+    }
+};
+
+/**
  * GET /api/admin/overview
  * Total stats for the platform
  */
@@ -23,6 +42,9 @@ router.get('/overview', protect, adminOnly, async (req, res, next) => {
     try {
         const { data: stats, error } = await supabase.rpc('get_admin_stats');
         if (error) throw error;
+
+        await logAdminAction(req, 'VIEW_OVERVIEW', 'SYSTEM', 'HUB');
+
         res.json({ success: true, data: stats });
     } catch (err) {
         next(err);
@@ -44,6 +66,7 @@ router.get('/users', protect, adminOnly, async (req, res, next) => {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
+        await logAdminAction(req, 'VIEW_USERS', 'SYSTEM', 'USER_LIST');
         res.json({ success: true, data: users });
     } catch (err) {
         next(err);
@@ -64,6 +87,7 @@ router.get('/identities', protect, adminOnly, async (req, res, next) => {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
+        await logAdminAction(req, 'VIEW_IDENTITIES', 'SYSTEM', 'IDENTITY_LIST');
         res.json({ success: true, data: identities });
     } catch (err) {
         next(err);

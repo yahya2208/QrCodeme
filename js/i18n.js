@@ -107,6 +107,7 @@ const i18n = {
             points_label: 'نقطة',
             points_total_shares: 'مشاركة',
             points_earn_more: 'شارك لتكسب المزيد!',
+            points_disclaimer: 'النقاط هي نظام مكافآت معنوي فقط، وليست لها قيمة مالية ولا يمكن تحويلها لأرباح.',
 
             // Messages
             msg_success: 'تم بنجاح',
@@ -160,6 +161,7 @@ const i18n = {
             rules_point2: '⭐ اكسب +5 نقاط عن كل شخص يفتح أحد روابطك.',
             rules_point3: '🌍 شارك التطبيق لزيادة انتشار هويتك الرقمية.',
             rules_point4: '⛔ الغش أو محاولة التلاعب تخصم -5 نقاط وقد تؤدي للحظر النهائي.',
+            rules_point5: '⚠️ النقاط هي وسيلة تقييم معنوية فقط وليس لها أي قيمة مالية.',
             rules_acknowledge: 'فهمت القواعد، فلنبدأ!',
             rules_dont_show: 'لا تظهر هذه الرسالة مرة أخرى',
 
@@ -183,7 +185,10 @@ const i18n = {
             edit_identity_title: 'تعديل الهوية الرقمية',
             edit_identity_name: 'اسم الهوية',
             edit_identity_bio: 'النبذة التعريفية',
-            edit_identity_save: 'حفظ التعديلات'
+            edit_identity_save: 'حفظ التعديلات',
+            delete_identity_p: 'عملية مسح الهوية نهائية ولا يمكن التراجع عنها.',
+            delete_identity_btn: '🗑️ مسح الهوية نهائياً',
+            delete_confirm: 'هل أنت متأكد من حذف هويتك نهائياً؟ سيتم حذف جميع الأكواد المرتبطة بها أيضاً.'
         },
 
         // ============================================
@@ -282,6 +287,7 @@ const i18n = {
             points_label: 'points',
             points_total_shares: 'shares',
             points_earn_more: 'Share to earn more!',
+            points_disclaimer: 'Points are for reward purposes only and have no monetary value and cannot be converted to profit.',
 
             // Messages
             msg_success: 'Success',
@@ -335,6 +341,7 @@ const i18n = {
             rules_point2: '⭐ Earn +5 points every time someone opens one of your links.',
             rules_point3: '🌍 Share the app to increase your digital identity reach.',
             rules_point4: '⛔ Cheating or tampering attempts deduct -5 points and may lead to a ban.',
+            rules_point5: '⚠️ Points are for reward purposes only and have no monetary value.',
             rules_acknowledge: 'I understand the rules, let’s go!',
             rules_dont_show: "Don't show this again",
 
@@ -358,7 +365,10 @@ const i18n = {
             edit_identity_title: 'Edit Digital Identity',
             edit_identity_name: 'Identity Name',
             edit_identity_bio: 'Biography',
-            edit_identity_save: 'Save Changes'
+            edit_identity_save: 'Save Changes',
+            delete_identity_p: 'Deleting your identity is permanent and cannot be undone.',
+            delete_identity_btn: '🗑️ Delete Identity Permanently',
+            delete_confirm: 'Are you sure you want to delete your identity permanently? All associated codes will be deleted as well.'
         }
 
     },

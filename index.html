@@ -59,7 +59,7 @@
                 </button>
                 <div id="user-controls" class="hidden">
                     <!-- Points Display -->
-                    <div class="points-badge" id="points-badge">
+                    <div class="points-badge" id="points-badge" data-t-title="points_disclaimer">
                         <span class="points-icon">⭐</span>
                         <span class="points-value" id="points-value">0</span>
                     </div>
@@ -355,6 +355,11 @@
                     <button type="submit" class="btn-primary btn-full" data-t="edit_identity_save">حفظ
                         التعديلات</button>
                 </form>
+                <div class="danger-zone">
+                    <p class="danger-text" data-t="delete_identity_p">عملية مسح الهوية نهائية ولا يمكن التراجع عنها.</p>
+                    <button class="btn-danger btn-full" id="delete-identity-final-btn" data-t="delete_identity_btn">مسح
+                        الهوية نهائياً</button>
+                </div>
             </div>
         </div>
 

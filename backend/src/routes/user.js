@@ -145,4 +145,23 @@ router.put('/identity', protect, async (req, res, next) => {
     }
 });
 
+/**
+ * DELETE /api/user/identity
+ * Private: Delete current user's identity and all associated codes.
+ */
+router.delete('/identity', protect, async (req, res, next) => {
+    try {
+        const { error } = await supabase
+            .from('nexus_identities')
+            .delete()
+            .eq('user_id', req.user.id);
+
+        if (error) throw error;
+
+        res.json({ success: true, message: 'Identity deleted successfully' });
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;

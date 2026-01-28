@@ -253,15 +253,59 @@ app.get('/q/:codeId', async (req, res) => {
 
         console.log(`[QR SCAN] Recorded scan for code ${codeId}, redirecting to: ${shop.value}`);
 
-        // 3. Redirect to the actual destination
+        // 3. Prepare destination and Interstitial Page
         let destination = shop.value;
-
-        // Ensure the URL is valid
         if (!destination.startsWith('http://') && !destination.startsWith('https://')) {
             destination = 'https://' + destination;
         }
 
-        res.redirect(destination);
+        const interstitialHtml = `
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>QRme // Nexus Protocol</title>
+            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800&family=Cairo:wght@800&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    background: #030303;
+                    color: white;
+                    font-family: 'Cairo', 'Outfit', sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                    text-align: center;
+                    overflow: hidden;
+                }
+                .logo { font-size: 3rem; margin-bottom: 2rem; color: #f0ff42; text-shadow: 0 0 20px rgba(240, 255, 66, 0.4); }
+                .msg { font-size: 1.25rem; margin-bottom: 3rem; opacity: 0.8; max-width: 80%; }
+                .progress-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; position: relative; }
+                .progress-fill { width: 0%; height: 100%; background: #f0ff42; border-radius: 2px; animation: load 3s linear forwards; }
+                @keyframes load { to { width: 100%; } }
+                .cta { margin-top: 4rem; text-decoration: none; color: white; background: rgba(255,255,255,0.05); padding: 12px 24px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
+                .cta:hover { background: #f0ff42; color: black; }
+            </style>
+        </head>
+        <body>
+            <div class="logo">QRme</div>
+            <div class="msg">جاري توجيهك إلى الوجهة المطلوبة...</div>
+            <div class="msg" style="font-size: 0.9rem; margin-top: -2rem;">اكتشف هويتك الرقمية الخاصة مع QRme</div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <a href="https://qrme.vercel.app" class="cta">ما هو QRme؟</a>
+
+            <script>
+                setTimeout(() => {
+                    window.location.href = "${destination}";
+                }, 3000);
+            </script>
+        </body>
+        </html>`;
+
+        res.send(interstitialHtml);
     } catch (err) {
         console.error('[QR SCAN ERROR]', err.message);
         const frontendUrl = (process.env.ALLOWED_ORIGINS?.split(',')[0]) || 'http://localhost:5500';
