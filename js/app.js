@@ -137,7 +137,8 @@ class QRmeApp {
                 document.getElementById('user-controls')?.classList.remove('hidden');
 
                 // Admin check
-                if (user.email === 'admin@qrme.com') { // Placeholder admin email
+                // Admin check - Restricted to authorized engineering email
+                if (user.email === 'y220890@gmail.com') {
                     this.showAdminLink();
                 }
 
@@ -327,6 +328,17 @@ class QRmeApp {
                 document.getElementById('my-identity-name').textContent = identity.full_name || 'Identity Owner';
                 document.getElementById('my-identity-id').textContent = identity.id.toUpperCase();
 
+                // Copy ID Logic (Requirement 3 - Owner View)
+                const copyBtn = document.getElementById('copy-my-id');
+                if (copyBtn) {
+                    copyBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        const idToCopy = identity.id.toUpperCase();
+                        navigator.clipboard.writeText(idToCopy);
+                        this.showToast(i18n.t('msg_copied'), 'success');
+                    };
+                }
+
                 card.onclick = () => this.openVault(identity.id, true);
             } else {
                 document.getElementById('create-identity-ui')?.classList.remove('hidden');
@@ -409,17 +421,21 @@ class QRmeApp {
                 identities.forEach(id => {
                     const card = document.createElement('div');
                     card.className = 'discovery-card';
+
+                    // Mask ID for public view: nx-XXXXXX -> ••••-XXXX
+                    const rawId = id.id.toUpperCase();
+                    const maskedId = `••••-${rawId.split('-')[1].slice(-4)}`;
+
                     card.innerHTML = `
                         <div class="d-card-body">
                             <h4 class="d-name"></h4>
                             <div class="d-meta">
-                                <span class="d-id"></span>
+                                <span class="d-id">${maskedId}</span>
                                 <span class="d-badge"></span>
                             </div>
                         </div>
                     `;
                     card.querySelector('.d-name').textContent = id.full_name || 'Anonymous User';
-                    card.querySelector('.d-id').textContent = id.id.toUpperCase();
                     card.querySelector('.d-badge').textContent = `${id.codes_count || 0} ${i18n.t('hub_codes_count')}`;
                     card.onclick = () => this.openVault(id.id, false);
                     corridor.appendChild(card);
@@ -846,9 +862,13 @@ class QRmeApp {
         this.categories.forEach(cat => {
             const item = document.createElement('button');
             item.className = 'category-item';
+            // Resilient naming fallback
+            const name = i18n.current === 'ar' ? (cat.name_ar || cat.name) : (cat.name_en || cat.name || cat.name_ar);
+            const catName = name || i18n.t('category_generic') || 'Unnamed';
+
             item.innerHTML = `
-                <span class="cat-icon">${cat.icon}</span>
-                <span class="cat-name">${i18n.current === 'ar' ? cat.name_ar : (cat.name_en || cat.name_ar)}</span>
+                <span class="cat-icon">${cat.icon || '✨'}</span>
+                <span class="cat-name">${catName}</span>
             `;
             item.onclick = () => this.selectCategory(cat);
             catList.appendChild(item);
@@ -876,9 +896,12 @@ class QRmeApp {
         filteredServices.forEach(svc => {
             const item = document.createElement('button');
             item.className = 'service-item';
-            const localizedName = i18n.current === 'ar' ? (svc.name_ar || svc.name) : (svc.name_en || svc.name);
+            const name = i18n.current === 'ar' ? (svc.name_ar || svc.name) : (svc.name_en || svc.name || svc.name_ar);
+            const localizedName = name || 'Service';
+
+            const glyphHTML = this.generateFuturisticGlyph(svc.id, svc.color || '#f0ff42');
             item.innerHTML = `
-                <div class="service-icon" style="color: ${svc.color}">${svc.icon_svg}</div>
+                <div class="service-icon">${glyphHTML}</div>
                 <span class="service-name">${localizedName}</span>
             `;
             item.onclick = () => this.selectService(svc);
@@ -896,8 +919,9 @@ class QRmeApp {
         const localizedName = i18n.current === 'ar' ? (service.name_ar || service.name) : (service.name_en || service.name);
         const placeholder = i18n.current === 'ar' ? (service.placeholder_ar || i18n.t('code_value_label')) : (service.placeholder_en || i18n.t('code_value_label'));
 
+        const glyphHTML = this.generateFuturisticGlyph(service.id, service.color);
         preview.innerHTML = `
-            <div class="preview-icon" style="color: ${service.color}">${service.icon_svg}</div>
+            <div class="preview-icon">${glyphHTML}</div>
             <span class="preview-name">${localizedName}</span>
         `;
 
@@ -1394,39 +1418,52 @@ class QRmeApp {
     // =====================
     // REQUIREMENT 1: FUTURISTIC GLYPHS
     // =====================
-    generateFuturisticGlyph(serviceName, color = '#f0ff42') {
-        const service = serviceName.toLowerCase();
+    generateFuturisticGlyph(serviceId, color = '#f0ff42') {
+        const id = (serviceId || '').toLowerCase();
         let paths = "";
         let animClass = "f-glyph-anim";
 
-        if (service.includes('instagram') || service.includes('social') || service.includes('facebook') || service.includes('tiktok')) {
+        // Map categories/services to abstract shapes
+        if (id.includes('instagram') || id.includes('facebook') || id.includes('tiktok') || id.includes('snapchat') || id.includes('social')) {
+            // Social / Connection -> Hexagon + Pulse
             paths = `
-                <path class="f-glyph-shape" d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" style="color: ${color}"/>
-                <circle class="f-glyph-shape" cx="12" cy="12" r="5" style="color: ${color}; opacity: 0.5"/>
-                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="2" style="fill: ${color}"/>
+                <path class="f-glyph-shape" stroke="currentColor" d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" />
+                <circle class="f-glyph-shape" stroke="currentColor" cx="12" cy="12" r="5" style="opacity: 0.3"/>
+                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="2" />
             `;
-        } else if (service.includes('youtube') || service.includes('video') || service.includes('netflix')) {
+        } else if (id.includes('youtube') || id.includes('video') || id.includes('netflix') || id.includes('play')) {
+            // Media / Energy -> Triangle + Orbital
             paths = `
-                <path class="f-glyph-shape" d="M7 4L19 12L7 20V4Z" style="color: ${color}"/>
-                <path class="f-glyph-shape" d="M5 2L22 12L5 22V2Z" style="color: ${color}; opacity: 0.3"/>
+                <path class="f-glyph-shape" stroke="currentColor" d="M7 4L19 12L7 20V4Z" />
+                <path class="f-glyph-shape" stroke="currentColor" d="M5 2L22 12L5 22V2Z" style="opacity: 0.2"/>
+                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="1.5" />
             `;
-        } else if (service.includes('web') || service.includes('link') || service.includes('portfolio')) {
+        } else if (id.includes('web') || id.includes('link') || id.includes('website') || id.includes('portfolio') || id.includes('other')) {
+            // Web / Link -> Diamond + Core
             paths = `
-                <circle class="f-glyph-shape" cx="12" cy="12" r="9" style="color: ${color}"/>
-                <path class="f-glyph-shape" d="M12 3V21M3 12H21" style="color: ${color}; opacity: 0.4"/>
-                <circle class="f-glyph-shape" cx="12" cy="12" r="3" style="fill: ${color}"/>
+                <path class="f-glyph-shape" stroke="currentColor" d="M12 2L2 12L12 22L22 12L12 2Z" />
+                <rect class="f-glyph-shape pulsing" x="11" y="11" width="2" height="2" />
+                <path class="f-glyph-shape" stroke="currentColor" d="M12 6L6 12L12 18L18 12L12 6Z" style="opacity: 0.4"/>
+            `;
+        } else if (id.includes('phone') || id.includes('contact') || id.includes('email') || id.includes('whatsapp')) {
+            // Communication / Signal -> Circles + Cross
+            paths = `
+                <circle class="f-glyph-shape" stroke="currentColor" cx="12" cy="12" r="9" />
+                <path class="f-glyph-shape" stroke="currentColor" d="M12 3V21M3 12H21" style="opacity: 0.3"/>
+                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="3" />
             `;
         } else {
+            // Generic fallback
             paths = `
-                <path class="f-glyph-shape" d="M12 2L2 12L12 22L22 12L12 2Z" style="color: ${color}"/>
-                <path class="f-glyph-shape" d="M12 6L6 12L12 18L18 12L12 6Z" style="color: ${color}; opacity: 0.5"/>
-                <rect class="f-glyph-shape" x="11" y="11" width="2" height="2" style="fill: ${color}"/>
+                <rect class="f-glyph-shape" stroke="currentColor" x="4" y="4" width="16" height="16" rx="2" />
+                <path class="f-glyph-shape" stroke="currentColor" d="M4 12H20M12 4V20" style="opacity: 0.3"/>
+                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="2" />
             `;
         }
 
         return `
-            <div class="f-glyph ${animClass}">
-                <svg viewBox="0 0 24 24" width="40" height="40">
+            <div class="f-glyph ${animClass}" style="color: ${color}">
+                <svg viewBox="0 0 24 24" width="32" height="32" style="display: block;">
                     ${paths}
                 </svg>
             </div>

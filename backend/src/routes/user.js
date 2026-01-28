@@ -116,4 +116,30 @@ router.post('/identity', protect, async (req, res, next) => {
     }
 });
 
+/**
+ * PUT /api/user/identity
+ * Private: Update current user's identity.
+ */
+router.put('/identity', protect, async (req, res, next) => {
+    try {
+        const { full_name, bio } = req.body;
+
+        const { data, error } = await supabase
+            .from('nexus_identities')
+            .update({
+                full_name: full_name ? sanitizeInput(full_name) : undefined,
+                bio: (bio !== undefined) ? sanitizeInput(bio) : undefined
+            })
+            .eq('user_id', req.user.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ success: true, data });
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;
