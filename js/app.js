@@ -4,9 +4,16 @@
 
 class QRmeApp {
     constructor() {
-        // Smart API Base: Use port 3001 for local dev, current origin for Vercel
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        this.apiBase = isLocal ? 'http://localhost:3001/api' : window.location.origin + '/api';
+        // Smart API Base: Detect local development environment
+        const hostname = window.location.hostname;
+        const isLocal = hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname.startsWith('192.168.') ||
+            hostname.startsWith('10.') ||
+            hostname.endsWith('.local');
+
+        this.apiBase = isLocal ? `http://${hostname}:3001/api` : window.location.origin + '/api';
+        console.log(`[INIT] API Base set to: ${this.apiBase}`);
         this.user = null;
         this.session = null;
         this.identity = null;
