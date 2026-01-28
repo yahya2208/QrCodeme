@@ -1,20 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const { supabase } = require('../config/supabase');
+const { body, validationResult } = require('express-validator');
 
 /**
  * POST /api/auth/login
  * Public: Authenticates user and returns JWT session
  */
-router.post('/login', async (req, res, next) => {
+router.post('/login', [
+    body('email').isEmail().normalizeEmail().withMessage('Invalid email format'),
+    body('password').notEmpty().withMessage('Password is required')
+], async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, errors: errors.array() });
+        }
+
         const { email, password } = req.body;
         console.log(`[AUTH] Login attempt for: ${email}`);
-
-        if (!email || !password) {
-            console.warn('[AUTH] Missing email or password in request body');
-            return res.status(400).json({ success: false, error: 'Email and password are required' });
-        }
 
         let { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -22,41 +26,29 @@ router.post('/login', async (req, res, next) => {
         });
 
         if (error) {
-            // If email not confirmed, handle it immediately via admin privileges
-            if (error.message === 'Email not confirmed' || error.status === 400) {
-                console.log(`[AUTH] Attempting emergency auto-confirm for: ${email}`);
-
-                // Find user ID by email
-                const { data: listData, error: listError } = await supabase.auth.admin.listUsers();
-                const targetUser = listData?.users?.find(u => u.email === email);
-
-                if (targetUser) {
-                    await supabase.auth.admin.updateUserById(targetUser.id, { email_confirm: true });
-                    // Try login again after confirm
-                    const retry = await supabase.auth.signInWithPassword({ email, password });
-                    data = retry.data;
-                    error = retry.error;
-                }
+            if (error.message === 'Email not confirmed') {
+                return res.status(403).json({
+                    success: false,
+                    error: 'يرجى تأكيد بريدك الإلكتروني أولاً. تحقق من صندوق الوارد.',
+                    needsEmailConfirmation: true,
+                    email: email
+                });
             }
-
-            if (error) {
-                console.error(`[AUTH ERROR] Supabase signin failed: ${error.message}`);
-                return res.status(error.status || 401).json({ success: false, error: error.message });
-            }
+            console.error(`[AUTH ERROR] Supabase signin failed: ${error.message}`);
+            return res.status(error.status || 401).json({ success: false, error: error.message });
         }
 
         // FAST-TRACK: Auto-confirm email if not confirmed (Development privilege)
         // This block is now partially redundant due to the explicit handling above,
         // but can remain as a fallback or for other scenarios where email_confirmed_at might be null
         // without an explicit 'Email not confirmed' error from signInWithPassword.
+        // Removed: AUTO-CONFIRM privilege fallback (Security Vulnerability Fixed)
         if (data.user && !data.user.email_confirmed_at) {
-            console.log(`[AUTH] Auto-confirming email for: ${email}`);
-            const { error: confirmError } = await supabase.auth.admin.updateUserById(
-                data.user.id,
-                { email_confirm: true }
-            );
-            if (confirmError) console.warn('[AUTH] Admin confirm failed:', confirmError.message);
-            else data.user.email_confirmed_at = new Date().toISOString();
+            return res.status(403).json({
+                success: false,
+                error: 'البريد غير مؤكد. يرجى مراجعة رسائل البريد الإلكتروني.',
+                needsEmailConfirmation: true
+            });
         }
 
         // AUTO-ENSURE PROFILE: If login is successful, make sure they have a row in public.users
@@ -95,13 +87,18 @@ router.post('/login', async (req, res, next) => {
  * POST /api/auth/register
  * Public: Registers a new user via Supabase Auth
  */
-router.post('/register', async (req, res, next) => {
+router.post('/register', [
+    body('email').isEmail().normalizeEmail().withMessage('بريد إلكتروني غير صالح'),
+    body('password').isLength({ min: 6 }).withMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
+    body('full_name').trim().isLength({ min: 3 }).withMessage('الاسم يجب أن يكون 3 أحرف على الأقل')
+], async (req, res, next) => {
     try {
-        const { email, password, full_name } = req.body;
-
-        if (!email || !password || !full_name) {
-            return res.status(400).json({ success: false, error: 'All fields are required' });
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, errors: errors.array() });
         }
+
+        const { email, password, full_name, referral_code } = req.body;
 
         // SignUp via Supabase
         const { data, error } = await supabase.auth.signUp({
@@ -125,7 +122,27 @@ router.post('/register', async (req, res, next) => {
                     full_name,
                     email
                 });
-            if (profileError) console.warn('Profile creation warning:', profileError.message);
+
+            if (profileError) {
+                console.warn('Profile creation warning:', profileError.message);
+            } else if (referral_code) {
+                // Securely award referral points
+                console.log(`[AUTH] Processing referral ${referral_code} for new user ${data.user.id}`);
+                try {
+                    await supabase.rpc('award_referral_points_admin', {
+                        p_referrer_id: referral_code,
+                        p_points: 10
+                    });
+
+                    // Log the conversion
+                    await supabase.from('referral_conversions').insert({
+                        referrer_id: referral_code,
+                        referred_user_id: data.user.id
+                    });
+                } catch (refErr) {
+                    console.error('[AUTH] Referral processing failed:', refErr.message);
+                }
+            }
         }
 
         res.json({

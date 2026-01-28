@@ -64,11 +64,17 @@ const supabaseClient = {
 
         async signUp({ email, password, options }) {
             const fullName = options?.data?.full_name || 'User';
+            const referralCode = options?.data?.referral_code || null;
             try {
                 const response = await fetch(`${API_BASE}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, full_name: fullName })
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        full_name: fullName,
+                        referral_code: referralCode
+                    })
                 });
                 const result = await response.json();
                 if (result.success) return { data: result.data, error: null };

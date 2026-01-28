@@ -188,11 +188,20 @@ class QRmeApp {
 
             this.setLoading(e.target, true);
 
+            // Detection of referral code from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('ref');
+
             try {
                 const { data, error } = await supabaseClient.auth.signUp({
                     email,
                     password,
-                    options: { data: { full_name: fullName } }
+                    options: {
+                        data: {
+                            full_name: fullName,
+                            referral_code: referralCode
+                        }
+                    }
                 });
 
                 if (error) throw (typeof error === 'string' ? new Error(error) : error);
@@ -392,13 +401,16 @@ class QRmeApp {
                     card.className = 'discovery-card';
                     card.innerHTML = `
                         <div class="d-card-body">
-                            <h4>${id.full_name || 'Anonymous User'}</h4>
+                            <h4 class="d-name"></h4>
                             <div class="d-meta">
-                                <span>${id.id.toUpperCase()}</span>
-                                <span class="d-badge">${id.codes_count || 0} ${i18n.t('hub_codes_count')}</span>
+                                <span class="d-id"></span>
+                                <span class="d-badge"></span>
                             </div>
                         </div>
                     `;
+                    card.querySelector('.d-name').textContent = id.full_name || 'Anonymous User';
+                    card.querySelector('.d-id').textContent = id.id.toUpperCase();
+                    card.querySelector('.d-badge').textContent = `${id.codes_count || 0} ${i18n.t('hub_codes_count')}`;
                     card.onclick = () => this.openVault(id.id, false);
                     corridor.appendChild(card);
                 });
@@ -486,7 +498,7 @@ class QRmeApp {
                                 ${iconSVG}
                             </div>
                             <div class="vault-item-info">
-                                <div class="vault-item-name">${code.name || code.service_name}</div>
+                                <div class="vault-item-name"></div>
                                 <div class="vault-item-stats">
                                     <div class="v-stat highlight">
                                         <span class="v-stat-icon">📈</span>
@@ -498,6 +510,8 @@ class QRmeApp {
                             </div>
                         </div>
                         ${actionsHTML}`;
+
+                    item.querySelector('.vault-item-name').textContent = code.name || code.service_name;
 
                     // Use a flag to prevent multiple rapid clicks
                     let isTracking = false;

@@ -3,6 +3,18 @@ const router = express.Router();
 const { supabase } = require('../config/supabase');
 const { protect } = require('../middleware/auth');
 
+const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return input;
+    return input
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;')
+        .trim()
+        .substring(0, 1000);
+};
+
 /**
  * GET /api/codes/metadata
  * Public: Load categories and services for UI
@@ -56,10 +68,10 @@ router.post('/create', protect, async (req, res, next) => {
             .from('shops') // Table name is 'shops' in the schema
             .insert({
                 identity_id,
-                user_id: req.user.id, // Adding user_id explicitly as required by some migrations
+                user_id: req.user.id,
                 service_id,
-                name: name || null,
-                value: display_value, // Column name is 'value' in migration_v7
+                name: sanitizeInput(name) || null,
+                value: display_value, // values are URLs/numbers, but we keep raw for QR logic
                 is_public: true
             })
             .select()

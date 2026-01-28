@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../config/supabase');
 const { protect } = require('../middleware/auth');
+const crypto = require('crypto');
+
+/**
+ * Input Sanitization Utility
+ */
+const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return input;
+    return input
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;')
+        .trim()
+        .substring(0, 500);
+};
 
 /**
  * GET /api/user/points
@@ -77,16 +93,17 @@ router.post('/identity', protect, async (req, res, next) => {
             });
         }
 
-        // 2. Generate a random Nexus ID (nx-XXXXXX)
-        const nexusId = `nx-${Math.random().toString(36).substring(2, 8)}`;
+        // 2. Generate a random SECURE Nexus ID (nx-XXXXXX)
+        const randomBytes = crypto.randomBytes(4);
+        const nexusId = `nx-${randomBytes.toString('hex')}`;
 
         const { data, error } = await supabase
             .from('nexus_identities')
             .insert({
                 id: nexusId,
                 user_id: req.user.id,
-                full_name,
-                bio: bio || null
+                full_name: sanitizeInput(full_name),
+                bio: sanitizeInput(bio) || null
             })
             .select()
             .single();

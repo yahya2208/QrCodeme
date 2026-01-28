@@ -29,11 +29,11 @@ const PORT = process.env.PORT || 3001;
 
 // CORS: Allow origins (MUST be before other middleware for preflight)
 const allowedOrigins = [
+    'https://qrme-nu.vercel.app',
+    'https://qrme.vercel.app',
     'http://localhost:3000',
     'http://localhost:5500',
-    'http://localhost:5173',
-    'http://127.0.0.1:5500',
-    'http://127.0.0.1:3000'
+    'http://localhost:5173'
 ];
 
 if (process.env.ALLOWED_ORIGINS) {
@@ -83,17 +83,24 @@ app.use(helmet({
 }));
 
 // Rate Limiting: Prevent abuse
-const limiter = rateLimit({
+const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Increased for polling (5s polling = 180 req / 15min)
-    message: {
-        success: false,
-        error: 'Too many requests, please try again later.'
-    },
+    max: 500, // Reduced from 1000 for better security
+    message: { success: false, error: 'Too many requests, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false
 });
-app.use(limiter);
+app.use('/api/', globalLimiter);
+
+// Strict Auth Limiter: Prevent brute force
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per 15 minutes
+    message: { success: false, error: 'Too many authentication attempts, please try again in 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use('/api/auth/', authLimiter);
 
 // Body parsing - CRITICAL: Must be before routes
 app.use(express.json({ limit: '1mb' }));
@@ -156,41 +163,22 @@ app.use('/api/referral', referralRouter);
 app.get('/r/:referrerId', async (req, res) => {
     try {
         const { referrerId } = req.params;
-        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
 
-        console.log(`[REFERRAL] Hit for ${referrerId} from IP Hash: ${ipHash.substring(0, 10)}...`);
-
-        // Check for unique conversion
-        const { data: existing } = await supabase
-            .from('referral_conversions')
+        // Check if referral ID exists in DB (to prevent invalid redirects)
+        const { data: identity } = await supabase
+            .from('nexus_identities')
             .select('id')
-            .eq('referrer_id', referrerId)
-            .eq('visitor_ip_hash', ipHash)
+            .eq('id', referrerId)
             .maybeSingle();
 
-        if (!existing) {
-            // New conversion
-            const { error: convError } = await supabase
-                .from('referral_conversions')
-                .insert({
-                    referrer_id: referrerId,
-                    visitor_ip_hash: ipHash
-                });
-
-            if (!convError) {
-                // Award points via RPC
-                await supabase.rpc('award_referral_points_admin', {
-                    p_referrer_id: referrerId,
-                    p_points: 10
-                });
-                console.log(`[REFERRAL] Points awarded to ${referrerId}`);
-            }
-        }
-
-        // Redirect to main frontend app
         const frontendUrl = (process.env.ALLOWED_ORIGINS?.split(',')[0]) || 'http://localhost:5500';
-        res.redirect(`${frontendUrl}?ref=${referrerId}`);
+
+        if (identity) {
+            console.log(`[REFERRAL] Redirecting visitor for referrer: ${referrerId}`);
+            res.redirect(`${frontendUrl}?ref=${referrerId}`);
+        } else {
+            res.redirect(frontendUrl);
+        }
     } catch (err) {
         console.error('[REFERRAL REDIRECT ERROR]', err.message);
         res.redirect('/');
@@ -289,15 +277,16 @@ app.use((req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-    console.error(`[ERROR] ${err.message}`);
+    // Log error stack only on server
+    console.error(`[ERROR] ${err.message}`, err.stack);
 
     // Don't leak error details in production
-    const isDev = process.env.NODE_ENV === 'development';
+    const isProd = process.env.NODE_ENV === 'production';
 
     res.status(err.status || 500).json({
         success: false,
-        error: isDev ? err.message : 'Internal server error',
-        ...(isDev && { stack: err.stack })
+        error: isProd ? 'Internal server error' : err.message,
+        ...(!isProd && { stack: err.stack })
     });
 });
 
