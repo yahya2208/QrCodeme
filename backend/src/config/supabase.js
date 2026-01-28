@@ -41,9 +41,8 @@ try {
     });
     console.log('✅ Supabase connected - Cloud storage active');
 } catch (error) {
-    console.error(error.message);
-    console.error('💀 Server cannot start without Supabase connection');
-    process.exit(1); // Exit if no database
+    console.warn('⚠️ Supabase Initialization Warning:', error.message);
+    console.warn('📡 Server initialized but database operations will fail until SUPABASE_URL and SUPABASE_SERVICE_KEY are provided.');
 }
 
 /**
