@@ -93,9 +93,12 @@ router.post('/identity', protect, async (req, res, next) => {
             });
         }
 
-        // 2. Generate a random SECURE Nexus ID (nx-XXXXXX)
-        const randomBytes = crypto.randomBytes(4);
-        const nexusId = `nx-${randomBytes.toString('hex')}`;
+        // 2. Generate a random SECURE Nexus ID (NX-XXXXXX)
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let nexusId = 'NX-';
+        for (let i = 0; i < 6; i++) {
+            nexusId += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
 
         const { data, error } = await supabase
             .from('nexus_identities')

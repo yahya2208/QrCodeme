@@ -153,11 +153,14 @@ const referralRouter = require('./routes/referral');
 const { supabase } = require('./config/supabase');
 const crypto = require('crypto');
 
+const adminRouter = require('./routes/admin');
+
 app.use('/api/auth', authRouter);
 app.use('/api/discovery', discoveryRouter);
 app.use('/api/user', userRouter);
 app.use('/api/codes', codesRouter);
 app.use('/api/referral', referralRouter);
+app.use('/api/admin', adminRouter);
 
 /**
  * GET Shorthand Referral Redirect

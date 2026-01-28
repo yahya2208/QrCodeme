@@ -422,9 +422,9 @@ class QRmeApp {
                     const card = document.createElement('div');
                     card.className = 'discovery-card';
 
-                    // Mask ID for public view: nx-XXXXXX -> ••••-XXXX
+                    // Mask ID for public view: NX-EETWIX -> ••••-TWIX
                     const rawId = id.id.toUpperCase();
-                    const maskedId = `••••-${rawId.split('-')[1].slice(-4)}`;
+                    const maskedId = `••••-${rawId.includes('-') ? rawId.split('-')[1].slice(-4) : rawId.slice(-4)}`;
 
                     card.innerHTML = `
                         <div class="d-card-body">
@@ -1331,29 +1331,57 @@ class QRmeApp {
     }
 
     async loadAdminData() {
+        const adminStats = document.getElementById('admin-stats');
         const usersList = document.getElementById('admin-users-list');
         const identitiesList = document.getElementById('admin-identities-list');
 
-        usersList.innerHTML = `<div class="loading-text">${i18n.t('msg_loading')}</div>`;
+        if (adminStats) adminStats.innerHTML = `<div class="loading-text">Loading Stats...</div>`;
+        usersList.innerHTML = `<div class="loading-text">Loading Users...</div>`;
+        identitiesList.innerHTML = `<div class="loading-text">Loading Identities...</div>`;
 
         try {
-            const result = await this.callApi('/admin/overview');
-            if (result.success) {
-                this.renderAdminUsers(result.data.users);
-                this.renderAdminIdentities(result.data.identities);
+            // 1. Load Overview Stats
+            const statsResult = await this.callApi('/admin/overview');
+            if (statsResult.success) {
+                const s = statsResult.data;
+                if (adminStats) {
+                    adminStats.innerHTML = `
+                        <div class="stat-pill">Users: <span>${s.total_users}</span></div>
+                        <div class="stat-pill">Identities: <span>${s.total_identities}</span></div>
+                        <div class="stat-pill">Codes: <span>${s.total_codes}</span></div>
+                        <div class="stat-pill">Scans: <span>${s.total_scans}</span></div>
+                    `;
+                }
+            }
+
+            // 2. Load Users
+            const usersResult = await this.callApi('/admin/users');
+            if (usersResult.success) {
+                this.renderAdminUsers(usersResult.data);
+            }
+
+            // 3. Load Identities
+            const identitiesResult = await this.callApi('/admin/identities');
+            if (identitiesResult.success) {
+                this.renderAdminIdentities(identitiesResult.data);
             }
         } catch (err) {
-            usersList.innerHTML = `<div class="error-text">Admin API Access Denied</div>`;
+            console.error('[ADMIN ERROR]', err);
+            usersList.innerHTML = `<div class="error-text">API Access Restricted</div>`;
         }
     }
 
     renderAdminUsers(users) {
         const container = document.getElementById('admin-users-list');
+        if (!users || users.length === 0) {
+            container.innerHTML = '<p class="empty-text">No users found.</p>';
+            return;
+        }
         container.innerHTML = users.map(u => `
             <div class="admin-card">
                 <div class="admin-user-info">
                     <h4>${u.email}</h4>
-                    <p>Points: ${u.points} | Joined: ${new Date(u.created_at).toLocaleDateString()}</p>
+                    <p>ID: ${u.id.slice(0, 8)} | Points: ${u.user_points?.total_points || 0}</p>
                 </div>
                 <div class="admin-actions">
                     <button class="btn-ban" onclick="app.adminAction('ban', '${u.id}')">${i18n.t('admin_ban_user')}</button>
@@ -1364,11 +1392,15 @@ class QRmeApp {
 
     renderAdminIdentities(identities) {
         const container = document.getElementById('admin-identities-list');
+        if (!identities || identities.length === 0) {
+            container.innerHTML = '<p class="empty-text">No identities found.</p>';
+            return;
+        }
         container.innerHTML = identities.map(id => `
             <div class="admin-card">
                 <div class="admin-user-info">
-                    <h4>${id.full_name} (@${id.id})</h4>
-                    <p>Codes: ${id.codes_count} | Author: ${id.user_email}</p>
+                    <h4>${id.full_name} (${id.id})</h4>
+                    <p>Codes: ${id.shops?.length || 0} | Bio: ${id.bio || 'No bio'}</p>
                 </div>
                 <div class="admin-actions">
                     <button class="btn-delete" onclick="app.adminAction('delete_identity', '${id.id}')">Delete</button>

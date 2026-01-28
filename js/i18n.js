@@ -164,9 +164,9 @@ const i18n = {
             rules_dont_show: 'لا تظهر هذه الرسالة مرة أخرى',
 
             // NEW: Curiosity Trap
-            trap_title: 'هذا مجرد كود...',
-            trap_subtitle: 'ماذا لو كان هذا كودك الخاص؟ هويتك الرقمية في انتظارك.',
-            trap_btn: '✨ أنشئ هويتك الآن',
+            trap_title: 'هل هذا مجرد كود؟',
+            trap_subtitle: 'لقد دخلت الخزنة بنجاح. ماذا لو كان الآخرون هم من يزورون خزنتك الآن؟ ابدأ بناء إرثك الرقمي.',
+            trap_btn: '✨ امتلك هويتك الآن',
 
             // NEW: Admin Dashboard
             admin_title: 'وضع التحكم الشامل',
@@ -339,9 +339,9 @@ const i18n = {
             rules_dont_show: "Don't show this again",
 
             // NEW: Curiosity Trap
-            trap_title: 'This is just a code...',
-            trap_subtitle: 'What if this was your own code? Your digital identity is waiting.',
-            trap_btn: '✨ Create Your Identity Now',
+            trap_title: 'Just an ordinary code?',
+            trap_subtitle: 'You have entered the vault. What if the world was visiting YOUR vault right now? Start building your digital legacy.',
+            trap_btn: '✨ Claim Your Identity',
 
             // NEW: Admin Dashboard
             admin_title: 'Global Control Mode',

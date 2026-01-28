@@ -1110,6 +1110,29 @@
     background: linear-gradient(180deg, rgba(240, 255, 66, 0.05), transparent);
 }
 
+.admin-stats-summary {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.stat-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.stat-pill span {
+    color: var(--yellow-warm);
+    font-weight: 800;
+    margin-left: 4px;
+}
+
 .admin-nav {
     display: flex;
     justify-content: center;
@@ -1344,5 +1367,87 @@
     background: var(--yellow-warm);
     box-shadow: 0 0 10px var(--yellow-glow);
     width: 20px;
+    border-radius: 4px;
+}
+
+/* Admin Secret Button */
+.btn-admin-secret {
+    background: transparent;
+    border: 1px solid rgba(240, 255, 66, 0.2);
+    color: var(--yellow-warm);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-left: 10px;
+    animation: pulseGlow 2s infinite;
+    z-index: 9999;
+}
+
+.btn-admin-secret:hover {
+    background: var(--yellow-warm);
+    color: black;
+    box-shadow: 0 0 15px var(--yellow-glow);
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(240, 255, 66, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(240, 255, 66, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(240, 255, 66, 0);
+    }
+}
+
+/* Enhanced Curiosity Trap */
+.curiosity-trap {
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #050505 80%, transparent);
+    padding: 60px 20px 30px;
+    text-align: center;
+    border-radius: 0 0 24px 24px;
+    z-index: 500;
+    backdrop-filter: blur(5px);
+}
+
+.trap-content h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--yellow-neon);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.trap-content p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 25px;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Discovery Masking */
+.d-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--yellow-warm);
+    background: rgba(240, 255, 66, 0.05);
+    padding: 2px 8px;
     border-radius: 4px;
 }
