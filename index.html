@@ -288,7 +288,8 @@
                     </button>
                 </nav>
                 <div class="admin-sidebar-footer">
-                    <button class="btn-exit-admin" id="admin-exit-btn">خروج من وضع الأدمن</button>
+                    <button class="btn-exit-admin" id="admin-exit-btn" data-t="admin_exit_btn">خروج من وضع
+                        الأدمن</button>
                 </div>
             </div>
 
@@ -296,8 +297,8 @@
                 <!-- Overview Tab -->
                 <div id="admin-overview" class="admin-tab active">
                     <div class="content-header">
-                        <h1>نظرة عامة على النظام</h1>
-                        <p>إحصائيات حيّة لأداء منصة QRme</p>
+                        <h1 data-t="admin_overview_title">نظرة عامة على النظام</h1>
+                        <p data-t="admin_overview_desc">إحصائيات حيّة لأداء منصة QRme</p>
                     </div>
 
                     <div class="admin-stats-grid" id="admin-kpis">
@@ -310,11 +311,11 @@
 
                     <div class="dashboard-bottom-grid">
                         <div class="recent-audit-box">
-                            <h3>آخر عمليات الإدارة</h3>
+                            <h3 data-t="admin_recent_actions">آخر عمليات الإدارة</h3>
                             <div id="admin-recent-audit-list"></div>
                         </div>
                         <div class="top-performers-box">
-                            <h3>أفضل الأداء</h3>
+                            <h3 data-t="admin_top_performance">أفضل الأداء</h3>
                             <div id="admin-top-performers"></div>
                         </div>
                     </div>
@@ -323,21 +324,22 @@
                 <!-- Users Tab -->
                 <div id="admin-users" class="admin-tab hidden">
                     <div class="content-header">
-                        <h1>إدارة المستخدمين</h1>
+                        <h1 data-t="admin_users_title">إدارة المستخدمين</h1>
                         <div class="search-bar">
-                            <input type="text" id="admin-user-search" placeholder="بحث بالإيميل أو الاسم...">
+                            <input type="text" id="admin-user-search" data-t-placeholder="admin_search_placeholder"
+                                placeholder="بحث بالإيميل أو الاسم...">
                         </div>
                     </div>
                     <div class="admin-table-container">
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>المستخدم</th>
-                                    <th>الحالة</th>
-                                    <th>الهويات</th>
-                                    <th>النقاط</th>
-                                    <th>التاريخ</th>
-                                    <th>الإجراءات</th>
+                                    <th data-t="admin_table_user">المستخدم</th>
+                                    <th data-t="admin_table_status">الحالة</th>
+                                    <th data-t="admin_table_identities">الهويات</th>
+                                    <th data-t="admin_table_points">النقاط</th>
+                                    <th data-t="admin_table_date">التاريخ</th>
+                                    <th data-t="admin_table_actions">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-users-tbody"></tbody>
@@ -348,7 +350,7 @@
                 <!-- Identities Tab -->
                 <div id="admin-identities" class="admin-tab hidden">
                     <div class="content-header">
-                        <h1>إدارة الهويات</h1>
+                        <h1 data-t="admin_ids_title">إدارة الهويات</h1>
                     </div>
                     <div class="identities-grid" id="admin-identities-grid"></div>
                 </div>
@@ -356,7 +358,7 @@
                 <!-- Logs Tab -->
                 <div id="admin-logs" class="admin-tab hidden">
                     <div class="content-header">
-                        <h1>سجل نشاط النظام</h1>
+                        <h1 data-t="admin_logs_title">سجل نشاط النظام</h1>
                     </div>
                     <div class="audit-log-list" id="admin-full-audit-log"></div>
                 </div>

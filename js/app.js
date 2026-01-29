@@ -1389,19 +1389,19 @@ class QRmeApp {
                 const grid = document.getElementById('admin-kpis');
                 grid.innerHTML = `
                     <div class="kpi-card">
-                        <div class="kpi-label">المستخدمين</div>
+                        <div class="kpi-label">${i18n.t('admin_total_users')}</div>
                         <div class="kpi-value">${s.users}</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label">الهويات</div>
+                        <div class="kpi-label">${i18n.t('admin_total_identities')}</div>
                         <div class="kpi-value">${s.identities}</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label">الأكواد</div>
+                        <div class="kpi-label">${i18n.t('admin_total_codes')}</div>
                         <div class="kpi-value">${s.codes}</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label">إجمالي المسحات</div>
+                        <div class="kpi-label">${i18n.t('admin_total_scans')}</div>
                         <div class="kpi-value">${s.total_scans}</div>
                     </div>
                 `;
@@ -1428,8 +1428,8 @@ class QRmeApp {
                         <td>${new Date(u.created_at).toLocaleDateString()}</td>
                         <td>
                             <div class="action-btns">
-                                <button onclick="app.adminUserAction('${u.id}', 'SUSPEND')">Suspend</button>
-                                <button onclick="app.adminUserAction('${u.id}', 'BAN')">Ban</button>
+                                <button onclick="app.adminUserAction('${u.id}', 'SUSPEND')">${i18n.t('admin_action_suspend')}</button>
+                                <button onclick="app.adminUserAction('${u.id}', 'BAN')">${i18n.t('admin_action_ban')}</button>
                             </div>
                         </td>
                     </tr>
@@ -1439,18 +1439,18 @@ class QRmeApp {
     }
 
     async adminUserAction(userId, action) {
-        const reason = prompt(`Reason for ${action}:`);
+        const reason = prompt(`${i18n.t('admin_prompt_reason')} ${action}:`);
         if (!reason) return;
         try {
             await this.callApi('/admin/users/action', 'POST', { userId, action, reason });
-            this.showToast('Action successful', 'success');
+            this.showToast(i18n.t('admin_msg_success'), 'success');
             this.loadAdminUsers();
         } catch (err) { this.showToast(err.message, 'error'); }
     }
 
     handleAdminError(err) {
         console.error('[ADMIN FAIL]', err);
-        this.showToast('Access Violation or Server Error', 'error');
+        this.showToast(i18n.t('admin_err_access'), 'error');
     }
 
     async loadAdminIdentities() {
@@ -1463,8 +1463,8 @@ class QRmeApp {
                         <div class="kpi-label">${id.id}</div>
                         <div class="kpi-value">${id.full_name}</div>
                         <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 10px;">
-                            Owner ID: ${id.user_id.slice(0, 8)}...<br>
-                            Codes: ${id.shops?.length || 0}
+                            ${i18n.t('admin_label_owner_id')}: ${id.user_id.slice(0, 8)}...<br>
+                            ${i18n.t('admin_label_codes')}: ${id.shops?.length || 0}
                         </p>
                     </div>
                 `).join('');

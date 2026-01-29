@@ -12,8 +12,16 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
 subprojects {
-    project.evaluationDependsOn(":app")
+    afterEvaluate {
+        val android = project.extensions.findByName("android")
+        if (android != null && android is com.android.build.gradle.BaseExtension) {
+            if (android.namespace == null) {
+                android.namespace = "com.qrnexus." + project.name.replace("-", ".").replace("_", ".")
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {

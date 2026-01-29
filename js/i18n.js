@@ -93,7 +93,7 @@ const i18n = {
             edit_title: 'تعديل الكود',
             edit_value_label: 'الرابط أو الرقم الجديد',
             edit_save_btn: 'حفظ التعديل',
-            delete_confirm: 'هل أنت متأكد من حذف هذا الكود؟ لا يمكن التراجع عن هذا الإجراء.',
+            delete_confirm_code: 'هل أنت متأكد من حذف هذا الكود؟ لا يمكن التراجع عن هذا الإجراء.',
 
             // Share
             share_btn: 'مشاركة التطبيق',
@@ -148,12 +148,12 @@ const i18n = {
             footer_made_with: 'صُنع بـ',
             footer_for: 'لمستقبل رقمي آمن',
 
-            // NEW: Privacy Policy
+            // Privacy Policy
             privacy_title: 'سياسة الخصوصية',
             privacy_link: 'سياسة الخصوصية',
             privacy_last_update: 'آخر تحديث: 2024/01/28',
 
-            // NEW: Game Rules (Onboarding)
+            // Game Rules (Onboarding)
             rules_title: 'قانون اللعبة',
             rules_subtitle: 'كيف تسيطر على المستقبل؟',
             rules_desc: 'نظام QRme يعتمد على التفاعل الذكي والقيمة المتبادلة.',
@@ -165,12 +165,12 @@ const i18n = {
             rules_acknowledge: 'فهمت القواعد، فلنبدأ!',
             rules_dont_show: 'لا تظهر هذه الرسالة مرة أخرى',
 
-            // NEW: Curiosity Trap
+            // Curiosity Trap
             trap_title: 'هل هذا مجرد كود؟',
             trap_subtitle: 'لقد دخلت الخزنة بنجاح. ماذا لو كان الآخرون هم من يزورون خزنتك الآن؟ ابدأ بناء إرثك الرقمي.',
             trap_btn: '✨ امتلك هويتك الآن',
 
-            // NEW: Admin Dashboard
+            // Admin Dashboard
             admin_title: 'وضع التحكم الشامل',
             admin_users: 'المستخدمون',
             admin_identities: 'الهويات',
@@ -180,15 +180,49 @@ const i18n = {
             admin_ban_user: 'حظر',
             admin_delete: 'حذف',
             admin_adjust_points: 'تعديل النقاط',
+            admin_nav_stats: 'الإحصائيات',
+            admin_nav_users: 'المستخدمين',
+            admin_nav_ids: 'الهويات',
+            admin_nav_audit: 'سجل النشاط',
+            admin_overview: 'نظرة عامة',
+            admin_logs: 'السجلات',
+            admin_total_users: 'المستخدمين',
+            admin_total_identities: 'الهويات',
+            admin_total_codes: 'الأكواد',
+            admin_total_scans: 'إجمالي المسحات',
+            admin_exit_btn: 'خروج من وضع الأدمن',
+            admin_overview_title: 'نظرة عامة على النظام',
+            admin_overview_desc: 'إحصائيات حيّة لأداء منصة QRme',
+            admin_recent_actions: 'آخر عمليات الإدارة',
+            admin_top_performance: 'أفضل الأداء',
+            admin_users_title: 'إدارة المستخدمين',
+            admin_search_placeholder: 'بحث بالإيميل أو الاسم...',
+            admin_table_user: 'المستخدم',
+            admin_table_status: 'الحالة',
+            admin_table_identities: 'الهويات',
+            admin_table_points: 'النقاط',
+            admin_table_date: 'التاريخ',
+            admin_table_actions: 'الإجراءات',
+            admin_ids_title: 'إدارة الهويات',
+            admin_logs_title: 'سجل نشاط النظام',
+            admin_action_suspend: 'تعليق',
+            admin_action_ban: 'حظر',
+            admin_prompt_reason: 'السبب لـ ',
+            admin_msg_success: 'تمت العملية بنجاح',
+            admin_err_access: 'خطأ في الوصول أو في الخادم',
+            admin_label_owner_id: 'معرف المالك',
+            admin_label_codes: 'أكواد',
+            admin_label_target: 'الهدف',
+            common_confirm: 'هل أنت متأكد؟',
 
-            // NEW: Identity Edit
+            // Identity Edit
             edit_identity_title: 'تعديل الهوية الرقمية',
             edit_identity_name: 'اسم الهوية',
             edit_identity_bio: 'النبذة التعريفية',
             edit_identity_save: 'حفظ التعديلات',
             delete_identity_p: 'عملية مسح الهوية نهائية ولا يمكن التراجع عنها.',
             delete_identity_btn: '🗑️ مسح الهوية نهائياً',
-            delete_confirm: 'هل أنت متأكد من حذف هويتك نهائياً؟ سيتم حذف جميع الأكواد المرتبطة بها أيضاً.'
+            delete_confirm_identity: 'هل أنت متأكد من حذف هويتك نهائياً؟ سيتم حذف جميع الأكواد المرتبطة بها أيضاً.'
         },
 
         // ============================================
@@ -237,6 +271,7 @@ const i18n = {
             hub_create_identity: 'Create Your Digital Identity',
             hub_name_label: 'Full Name',
             hub_bio_label: 'Short Bio',
+            hub_reach_total: 'Total Network Reach',
             hub_create_btn: 'Create Identity',
             hub_empty_discovery: 'No public identities',
             hub_codes_count: 'codes',
@@ -273,7 +308,7 @@ const i18n = {
             edit_title: 'Edit Code',
             edit_value_label: 'New Link or Number',
             edit_save_btn: 'Save Changes',
-            delete_confirm: 'Are you sure you want to delete this code? This action cannot be undone.',
+            delete_confirm_code: 'Are you sure you want to delete this code? This action cannot be undone.',
 
             // Share
             share_btn: 'Share App',
@@ -328,12 +363,12 @@ const i18n = {
             footer_made_with: 'Made with',
             footer_for: 'for a secure digital future',
 
-            // NEW: Privacy Policy
+            // Privacy Policy
             privacy_title: 'Privacy Policy',
             privacy_link: 'Privacy Policy',
             privacy_last_update: 'Last Update: 2024/01/28',
 
-            // NEW: Game Rules (Onboarding)
+            // Game Rules (Onboarding)
             rules_title: 'The Game Law',
             rules_subtitle: 'How to dominate the future?',
             rules_desc: 'QRme system relies on smart interaction and mutual value.',
@@ -345,12 +380,12 @@ const i18n = {
             rules_acknowledge: 'I understand the rules, let’s go!',
             rules_dont_show: "Don't show this again",
 
-            // NEW: Curiosity Trap
+            // Curiosity Trap
             trap_title: 'Just an ordinary code?',
             trap_subtitle: 'You have entered the vault. What if the world was visiting YOUR vault right now? Start building your digital legacy.',
             trap_btn: '✨ Claim Your Identity',
 
-            // NEW: Admin Dashboard
+            // Admin Dashboard
             admin_title: 'Global Control Mode',
             admin_users: 'Users',
             admin_identities: 'Identities',
@@ -360,17 +395,50 @@ const i18n = {
             admin_ban_user: 'Ban',
             admin_delete: 'Delete',
             admin_adjust_points: 'Adjust Points',
+            admin_nav_stats: 'Statistics',
+            admin_nav_users: 'Users',
+            admin_nav_ids: 'Identities',
+            admin_nav_audit: 'Audit Log',
+            admin_overview: 'Overview',
+            admin_logs: 'Logs',
+            admin_total_users: 'Total Users',
+            admin_total_identities: 'Total Identities',
+            admin_total_codes: 'Total Codes',
+            admin_total_scans: 'Total Scans',
+            admin_exit_btn: 'Exit Admin Mode',
+            admin_overview_title: 'System Overview',
+            admin_overview_desc: 'Live statistics for QRme Platform',
+            admin_recent_actions: 'Recent Admin Actions',
+            admin_top_performance: 'Top Performance',
+            admin_users_title: 'User Management',
+            admin_search_placeholder: 'Search by email or name...',
+            admin_table_user: 'User',
+            admin_table_status: 'Status',
+            admin_table_identities: 'Identities',
+            admin_table_points: 'Points',
+            admin_table_date: 'Date',
+            admin_table_actions: 'Actions',
+            admin_ids_title: 'Identity Management',
+            admin_logs_title: 'System Activity Log',
+            admin_action_suspend: 'Suspend',
+            admin_action_ban: 'Ban',
+            admin_prompt_reason: 'Reason for ',
+            admin_msg_success: 'Action successful',
+            admin_err_access: 'Access Violation or Server Error',
+            admin_label_owner_id: 'Owner ID',
+            admin_label_codes: 'Codes',
+            admin_label_target: 'Target',
+            common_confirm: 'Are you sure?',
 
-            // NEW: Identity Edit
+            // Identity Edit
             edit_identity_title: 'Edit Digital Identity',
             edit_identity_name: 'Identity Name',
             edit_identity_bio: 'Biography',
             edit_identity_save: 'Save Changes',
             delete_identity_p: 'Deleting your identity is permanent and cannot be undone.',
             delete_identity_btn: '🗑️ Delete Identity Permanently',
-            delete_confirm: 'Are you sure you want to delete your identity permanently? All associated codes will be deleted as well.'
+            delete_confirm_identity: 'Are you sure you want to delete your identity permanently? All associated codes will be deleted as well.'
         }
-
     },
 
     // Initialize localization

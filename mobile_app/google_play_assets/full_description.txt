@@ -1,0 +1,36 @@
+QRme - Your Digital Identity Hub
+
+Create a unified digital identity and share all your social profiles, contact information, and links through a single QR code.
+
+KEY FEATURES:
+
+• Digital Identity Creation
+Build your personal digital profile with your name, bio, and all your important links in one place.
+
+• Multi-Platform Links
+Add links to your social media profiles, websites, phone numbers, email addresses, and more. Supports major platforms including WhatsApp, Instagram, Facebook, TikTok, LinkedIn, Telegram, and many others.
+
+• Secure QR Code Generation
+Generate personalized QR codes that others can scan to instantly access your digital identity and connect with you.
+
+• Privacy-Focused Design
+You control what information is visible. Your actual links are only revealed when you choose to share them.
+
+• Scan Analytics
+Track how many times your QR codes have been scanned to understand your reach and engagement.
+
+• Bilingual Support
+Full support for both Arabic (RTL) and English (LTR) interfaces.
+
+• Points & Engagement System
+Earn points by sharing the app and engaging with the community. Points reflect your activity level within the platform.
+
+HOW IT WORKS:
+1. Create your account
+2. Build your digital identity with your information and links
+3. Share your unique QR code with others
+4. Others scan your code to view your profile and connect with you
+
+QRme is perfect for professionals, content creators, business owners, and anyone who wants a modern way to share their contact information and online presence.
+
+Note: Points earned within the app are for engagement purposes only and hold no monetary value.

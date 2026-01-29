@@ -1,0 +1,75 @@
+PERMISSIONS JUSTIFICATION FOR QRME
+
+This document explains why each permission is required by the QRme application.
+
+================================================================================
+1. INTERNET (android.permission.INTERNET)
+================================================================================
+Purpose: Required for core app functionality
+
+Justification:
+- User authentication (login/registration)
+- Syncing user profile data with our secure backend
+- Loading and displaying digital identity information
+- Recording QR code scan analytics
+- Retrieving service icons and assets
+
+This permission is essential as QRme is a cloud-based digital identity platform.
+
+================================================================================
+2. CAMERA (android.permission.CAMERA)
+================================================================================
+Purpose: QR Code Scanning
+
+Justification:
+- Allows users to scan QR codes to view other users' digital identities
+- Camera is accessed only when the user initiates a scan
+- No images or video are stored or transmitted
+- Camera stream is processed locally on-device only
+
+User Control: Camera access can be revoked at any time through device settings.
+
+================================================================================
+3. WRITE_EXTERNAL_STORAGE (android.permission.WRITE_EXTERNAL_STORAGE)
+   (Android 12 and below only - maxSdkVersion="32")
+================================================================================
+Purpose: Save QR Code Images
+
+Justification:
+- Allows users to download their generated QR codes as image files
+- Users can then share these images via other apps or print them
+- Only used when user explicitly taps "Download" or "Save" button
+- On Android 13+, this permission is not required due to scoped storage
+
+User Control: This is only triggered by explicit user action.
+
+================================================================================
+4. READ_EXTERNAL_STORAGE (android.permission.READ_EXTERNAL_STORAGE)
+   (Android 12 and below only - maxSdkVersion="32")
+================================================================================
+Purpose: Access saved QR code images
+
+Justification:
+- Allows the app to access previously saved QR code images if needed
+- Required for share functionality on older Android versions
+- On Android 13+, this permission is not required
+
+================================================================================
+PERMISSIONS NOT USED
+================================================================================
+The following potentially sensitive permissions are NOT requested:
+- Location (GPS/Network location) - Not needed
+- Contacts - Not needed
+- Microphone - Not needed
+- Phone/Call - Not needed
+- SMS - Not needed
+- Background Location - Not needed
+
+================================================================================
+SUMMARY
+================================================================================
+QRme requests only the minimum permissions necessary to provide its core 
+functionality: internet connectivity for cloud sync, camera for QR scanning, 
+and storage access (legacy Android only) for saving QR images.
+
+All permissions are used transparently and in accordance with user expectations.

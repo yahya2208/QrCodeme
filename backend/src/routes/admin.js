@@ -55,7 +55,7 @@ router.get('/system/overview', async (req, res, next) => {
 router.get('/users', async (req, res, next) => {
     try {
         const { search, page = 1 } = req.query;
-        let query = supabase.from('users').select('id, email, full_name, created_at, status');
+        let query = supabase.from('users').select('id, email, full_name, created_at');
         if (search) query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
         const { data: users, error: uError } = await query
             .order('created_at', { ascending: false })
@@ -64,13 +64,17 @@ router.get('/users', async (req, res, next) => {
         const userIds = users.map(u => u.id);
         const [{ data: points }, { data: ids }] = await Promise.all([
             supabase.from('user_points').select('user_id, total_points').in('user_id', userIds),
-            supabase.from('nexus_identities').select('user_id, id, full_name').in('user_id', userIds)
+            supabase.from('nexus_identities').select('user_id, id, full_name, status').in('user_id', userIds)
         ]);
-        const merged = users.map(u => ({
-            ...u,
-            user_points: points?.find(p => p.user_id === u.id) || { total_points: 0 },
-            nexus_identities: ids?.filter(i => i.user_id === u.id) || []
-        }));
+        const merged = users.map(u => {
+            const identity = ids?.find(i => i.user_id === u.id);
+            return {
+                ...u,
+                status: identity?.status || 'active',
+                user_points: points?.find(p => p.user_id === u.id) || { total_points: 0 },
+                nexus_identities: identity ? [identity] : []
+            };
+        });
         res.json({ success: true, data: merged });
     } catch (err) { next(err); }
 });
@@ -85,9 +89,9 @@ router.post('/users/action', async (req, res, next) => {
         if (action === 'SUSPEND' || action === 'BAN' || action === 'ACTIVATE') {
             const statusMap = { 'SUSPEND': 'suspended', 'BAN': 'banned', 'ACTIVATE': 'active' };
             const { error } = await supabase
-                .from('users')
+                .from('nexus_identities')
                 .update({ status: statusMap[action], ban_reason: reason })
-                .eq('id', userId);
+                .eq('user_id', userId);
             if (error) throw error;
             await logAudit(req, action, 'USER', userId, { reason });
         } else if (action === 'RESET_POINTS') {
