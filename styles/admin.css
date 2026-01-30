@@ -39,7 +39,8 @@
 }
 
 .btn-toggle-admin-nav {
-    display: none; /* Desktop hidden */
+    display: none;
+    /* Desktop hidden */
     background: transparent;
     border: none;
     color: white;
@@ -191,9 +192,20 @@
     text-transform: uppercase;
 }
 
-.status-active { background: rgba(50, 255, 100, 0.1); color: #32ff64; }
-.status-suspended { background: rgba(255, 180, 50, 0.1); color: #ffb432; }
-.status-banned { background: rgba(255, 50, 50, 0.1); color: #ff3232; }
+.status-active {
+    background: rgba(50, 255, 100, 0.1);
+    color: #32ff64;
+}
+
+.status-suspended {
+    background: rgba(255, 180, 50, 0.1);
+    color: #ffb432;
+}
+
+.status-banned {
+    background: rgba(255, 50, 50, 0.1);
+    color: #ff3232;
+}
 
 .btn-exit-admin {
     width: 100%;
@@ -216,8 +228,8 @@
 .search-bar input {
     width: 100%;
     max-width: 400px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 12px 20px;
     border-radius: 12px;
     color: white;
@@ -227,7 +239,7 @@
 
 .search-bar input:focus {
     border-color: var(--neon-yellow, #f0ff42);
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* RESPONSIVE DRAWER LOGIC */
@@ -237,7 +249,8 @@
         left: 0;
         top: 0;
         height: 100%;
-        transform: translateX(-100%); /* Start hidden in LTR, but we are RTL */
+        transform: translateX(-100%);
+        /* Start hidden in LTR, but we are RTL */
     }
 
     [dir="rtl"] .admin-sidebar {
@@ -248,15 +261,16 @@
 
     .admin-sidebar.open {
         transform: translateX(0);
-        box-shadow: 20px 0 50px rgba(0,0,0,0.8);
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
     }
-    
+
     [dir="rtl"] .admin-sidebar.open {
-        box-shadow: -20px 0 50px rgba(0,0,0,0.8);
+        box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8);
     }
 
     .btn-toggle-admin-nav {
-        display: block; /* Show hamburger */
+        display: block;
+        /* Show hamburger */
     }
 
     /* Backdrop when drawer is open */
@@ -267,14 +281,14 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0);
+        background: rgba(0, 0, 0, 0);
         visibility: hidden;
         transition: 0.4s;
         z-index: 1999;
     }
 
     .admin-supremacy.nav-open::before {
-        background: rgba(0,0,0,0.7);
+        background: rgba(0, 0, 0, 0.7);
         backdrop-filter: blur(5px);
         visibility: visible;
     }
@@ -290,23 +304,141 @@
     .content-header h1 {
         font-size: 1.6rem;
     }
-    
+
     .admin-stats-grid {
         grid-template-columns: 1fr;
     }
 }
 
-/* GLYPH GLOW EFFECT */
+/* --- FUTURISTIC GLYPHS & ICONS --- */
+.f-glyph {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin: 0 auto;
+}
+
+.f-glyph i {
+    font-size: 28px;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 0 8px currentColor);
+}
+
 .glyph-glow {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 30px;
-    height: 30px;
-    transform: translate(-50%, -50%);
-    filter: blur(20px);
-    opacity: 0.2;
+    width: 40px;
+    height: 40px;
+    background: currentColor;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: -1;
+    transform: translate(-50%, -50%) scale(0.8);
+    filter: blur(20px);
+    opacity: 0.15;
+    transition: all 0.4s ease;
+    z-index: 1;
+}
+
+/* Hover effects for glyphs */
+.vault-item:hover .f-glyph,
+.service-item:hover .f-glyph,
+.category-item:hover .f-glyph {
+    transform: scale(1.1) rotate(5deg);
+    border-color: currentColor;
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.vault-item:hover .glyph-glow,
+.service-item:hover .glyph-glow,
+.category-item:hover .glyph-glow {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Animation for loading icons */
+@keyframes icon-pop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.f-glyph i {
+    animation: icon-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+}
+
+/* Admin Specific Overrides */
+.admin-nav-vertical .nav-icon i {
+    font-size: 1.1rem;
+    color: inherit;
+    filter: none;
+}
+
+/* Category Grid & Item Revamp */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 10px;
+}
+
+.category-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.category-item:hover {
+    background: rgba(240, 255, 66, 0.1);
+    border-color: var(--neon-yellow);
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.cat-icon-container {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--neon-yellow);
+    transition: all 0.3s ease;
+}
+
+.category-item:hover .cat-icon-container {
+    background: var(--neon-yellow);
+    color: var(--bg-void);
+    transform: rotate(-10deg) scale(1.1);
+    box-shadow: 0 0 20px rgba(240, 255, 66, 0.5);
+}
+
+.cat-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }

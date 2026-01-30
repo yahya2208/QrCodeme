@@ -861,15 +861,28 @@ class QRmeApp {
         const catList = document.getElementById('category-list');
         catList.innerHTML = '';
 
+        const catIcons = {
+            'social': 'fas fa-share-nodes',
+            'contact': 'fas fa-id-card',
+            'payment': 'fas fa-credit-card',
+            'professional': 'fas fa-user-tie',
+            'media': 'fas fa-clapperboard',
+            'other': 'fas fa-star'
+        };
+
         this.categories.forEach(cat => {
             const item = document.createElement('button');
             item.className = 'category-item';
-            // Resilient naming fallback
+
             const name = i18n.current === 'ar' ? (cat.name_ar || cat.name) : (cat.name_en || cat.name || cat.name_ar);
             const catName = name || i18n.t('category_generic') || 'Unnamed';
 
+            // Map category ID to FontAwesome icon or use the one from DB
+            const iconClass = catIcons[cat.id] || (cat.icon && cat.icon.includes('fa-') ? cat.icon : null);
+            const iconHTML = iconClass ? `<i class="${iconClass}"></i>` : `<span>${cat.icon || '✨'}</span>`;
+
             item.innerHTML = `
-                <span class="cat-icon">${cat.icon || '✨'}</span>
+                <div class="cat-icon-container">${iconHTML}</div>
                 <span class="cat-name">${catName}</span>
             `;
             item.onclick = () => this.selectCategory(cat);
@@ -1559,64 +1572,97 @@ class QRmeApp {
     }
 
     // =====================
-    // REQUIREMENT 1: SEMANTIC ICONS (Updated for Real Icons)
+    // REQUIREMENT 1: SEMANTIC ICONS - MASSIVE EXPANSION
     // =====================
     generateFuturisticGlyph(serviceId, color = '#f0ff42') {
         const id = (serviceId || '').toLowerCase();
-        let iconClass = "fas fa-link"; // Default link icon
-        let brandIcon = false;
+        let iconClass = "fas fa-link"; // Fallback: Universal link icon
 
-        // Map categories/services to real FontAwesome icons
-        if (id.includes('instagram')) {
-            iconClass = "fab fa-instagram";
-            brandIcon = true;
-        } else if (id.includes('facebook') || id.includes('messenger')) {
-            iconClass = "fab fa-facebook";
-            brandIcon = true;
-        } else if (id.includes('tiktok')) {
-            iconClass = "fab fa-tiktok";
-            brandIcon = true;
-        } else if (id.includes('snapchat')) {
-            iconClass = "fab fa-snapchat";
-            brandIcon = true;
-        } else if (id.includes('youtube')) {
-            iconClass = "fab fa-youtube";
-            brandIcon = true;
-        } else if (id.includes('whatsapp')) {
-            iconClass = "fab fa-whatsapp";
-            brandIcon = true;
-        } else if (id.includes('telegram')) {
-            iconClass = "fab fa-telegram";
-            brandIcon = true;
-        } else if (id.includes('twitter') || id.includes(' x ')) {
-            iconClass = "fab fa-x-twitter";
-            brandIcon = true;
-        } else if (id.includes('linkedin')) {
-            iconClass = "fab fa-linkedin";
-            brandIcon = true;
-        } else if (id.includes('phone') || id.includes('call')) {
-            iconClass = "fas fa-phone";
-        } else if (id.includes('email') || id.includes('mail')) {
-            iconClass = "fas fa-envelope";
-        } else if (id.includes('web') || id.includes('website') || id.includes('link')) {
-            iconClass = "fas fa-globe";
-        } else if (id.includes('location') || id.includes('map')) {
-            iconClass = "fas fa-location-dot";
-        } else if (id.includes('wifi')) {
-            iconClass = "fas fa-wifi";
-        } else if (id.includes('music') || id.includes('spotify') || id.includes('soundcloud')) {
-            iconClass = id.includes('spotify') ? "fab fa-spotify" : (id.includes('soundcloud') ? "fab fa-soundcloud" : "fas fa-music");
-            brandIcon = id.includes('spotify') || id.includes('soundcloud');
-        } else if (id.includes('video') || id.includes('netflix')) {
-            iconClass = id.includes('netflix') ? "fab fa-netflix" : "fas fa-video";
-            brandIcon = id.includes('netflix');
-        } else if (id.includes('shop') || id.includes('store') || id.includes('cart')) {
-            iconClass = "fas fa-shopping-cart";
+        // Comprehensive Social Media & Service Mapping
+        const mapping = {
+            // Main Socials
+            'instagram': 'fab fa-instagram',
+            'facebook': 'fab fa-facebook',
+            'messenger': 'fab fa-facebook-messenger',
+            'tiktok': 'fab fa-tiktok',
+            'snapchat': 'fab fa-snapchat',
+            'youtube': 'fab fa-youtube',
+            'whatsapp': 'fab fa-whatsapp',
+            'telegram': 'fab fa-telegram',
+            'twitter': 'fab fa-x-twitter',
+            'x': 'fab fa-x-twitter',
+            'linkedin': 'fab fa-linkedin',
+            'threads': 'fab fa-threads',
+
+            // Communication & Community
+            'discord': 'fab fa-discord',
+            'reddit': 'fab fa-reddit',
+            'pinterest': 'fab fa-pinterest',
+            'twitch': 'fab fa-twitch',
+            'skype': 'fab fa-skype',
+            'slack': 'fab fa-slack',
+            'vimeo': 'fab fa-vimeo',
+            'tumblr': 'fab fa-tumblr',
+            'line': 'fab fa-line',
+
+            // Development & Professional
+            'github': 'fab fa-github',
+            'gitlab': 'fab fa-gitlab',
+            'bitbucket': 'fab fa-bitbucket',
+            'stack-overflow': 'fab fa-stack-overflow',
+            'portfolio': 'fas fa-briefcase',
+            'resume': 'fas fa-file-pdf',
+            'cv': 'fas fa-file-invoice',
+
+            // Media & Music
+            'spotify': 'fab fa-spotify',
+            'soundcloud': 'fab fa-soundcloud',
+            'apple-music': 'fab fa-apple',
+            'music': 'fas fa-music',
+            'video': 'fas fa-video',
+            'netflix': 'fab fa-netflix',
+            'google-play': 'fab fa-google-play',
+            'app-store': 'fab fa-app-store-ios',
+
+            // Business & Finance
+            'paypal': 'fab fa-paypal',
+            'patreon': 'fab fa-patreon',
+            'buy-me-coffee': 'fas fa-coffee',
+            'store': 'fas fa-store',
+            'cart': 'fas fa-shopping-cart',
+            'shop': 'fas fa-shop',
+            'payment': 'fas fa-credit-card',
+
+            // Communication Lines
+            'phone': 'fas fa-phone',
+            'call': 'fas fa-phone-volume',
+            'email': 'fas fa-envelope',
+            'mail': 'fas fa-at',
+            'contact': 'fas fa-id-badge',
+
+            // General Web / Utilities
+            'web': 'fas fa-globe',
+            'website': 'fas fa-laptop-code',
+            'link': 'fas fa-link',
+            'location': 'fas fa-location-dot',
+            'map': 'fas fa-map-location-dot',
+            'wifi': 'fas fa-wifi',
+            'qr': 'fas fa-qrcode',
+            'info': 'fas fa-circle-info',
+            'other': 'fas fa-star-of-life'
+        };
+
+        // Advanced matching using keys
+        for (const [key, value] of Object.entries(mapping)) {
+            if (id.includes(key)) {
+                iconClass = value;
+                break;
+            }
         }
 
         return `
             <div class="f-glyph" style="color: ${color}">
-                <i class="${iconClass}" style="font-size: 24px; display: block;"></i>
+                <i class="${iconClass}"></i>
                 <div class="glyph-glow" style="background: ${color}"></div>
             </div>
         `;
