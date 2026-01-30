@@ -567,7 +567,7 @@ class QRmeApp {
                         document.getElementById('vault-overlay').classList.add('hidden');
                         this.showView('register');
                     };
-                } else {
+                } else if (realIsOwner || (this.user && this.identity)) {
                     trap.classList.add('hidden');
                 }
             }
@@ -1020,7 +1020,7 @@ class QRmeApp {
                 const input = document.getElementById(btn.dataset.target);
                 if (input) {
                     input.type = input.type === 'password' ? 'text' : 'password';
-                    btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+                    btn.innerHTML = input.type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
                 }
             });
         });
@@ -1344,17 +1344,48 @@ class QRmeApp {
                 btn.classList.add('active');
                 const targetId = btn.dataset.target;
                 document.getElementById(targetId).classList.remove('hidden');
+
+                // Close sidebar on mobile after click
+                if (window.innerWidth <= 1024) {
+                    this.toggleAdminSidebar(false);
+                }
+
                 this.loadAdminTab(targetId);
             });
         });
 
-        document.getElementById('admin-exit-btn')?.addEventListener('click', () => this.showView('hub'));
+        // Toggle Admin Sidebar (Mobile Drawer)
+        document.getElementById('admin-nav-toggle')?.addEventListener('click', () => {
+            this.toggleAdminSidebar();
+        });
+
+        // Close when clicking outside (on backdrop)
+        document.querySelector('.admin-supremacy')?.addEventListener('click', (e) => {
+            if (e.target.classList.contains('admin-supremacy') && window.innerWidth <= 1024) {
+                this.toggleAdminSidebar(false);
+            }
+        });
+
+        document.getElementById('admin-exit-btn')?.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) this.toggleAdminSidebar(false);
+            this.showView('hub');
+        });
 
         // Search filter
         document.getElementById('admin-user-search')?.addEventListener('input', (e) => {
             clearTimeout(this.adminSearchTimer);
             this.adminSearchTimer = setTimeout(() => this.loadAdminUsers(e.target.value), 500);
         });
+    }
+
+    toggleAdminSidebar(force) {
+        const sidebar = document.querySelector('.admin-sidebar');
+        const container = document.querySelector('.admin-supremacy');
+        const isOpen = sidebar.classList.contains('open');
+        const nextState = force !== undefined ? force : !isOpen;
+
+        sidebar.classList.toggle('open', nextState);
+        container.classList.toggle('nav-open', nextState);
     }
 
     showAdminLink() {
@@ -1528,56 +1559,65 @@ class QRmeApp {
     }
 
     // =====================
-    // REQUIREMENT 1: FUTURISTIC GLYPHS
+    // REQUIREMENT 1: SEMANTIC ICONS (Updated for Real Icons)
     // =====================
     generateFuturisticGlyph(serviceId, color = '#f0ff42') {
         const id = (serviceId || '').toLowerCase();
-        let paths = "";
-        let animClass = "f-glyph-anim";
+        let iconClass = "fas fa-link"; // Default link icon
+        let brandIcon = false;
 
-        // Map categories/services to abstract shapes
-        if (id.includes('instagram') || id.includes('facebook') || id.includes('tiktok') || id.includes('snapchat') || id.includes('social')) {
-            // Social / Connection -> Hexagon + Pulse
-            paths = `
-                <path class="f-glyph-shape" stroke="currentColor" d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" />
-                <circle class="f-glyph-shape" stroke="currentColor" cx="12" cy="12" r="5" style="opacity: 0.3"/>
-                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="2" />
-            `;
-        } else if (id.includes('youtube') || id.includes('video') || id.includes('netflix') || id.includes('play')) {
-            // Media / Energy -> Triangle + Orbital
-            paths = `
-                <path class="f-glyph-shape" stroke="currentColor" d="M7 4L19 12L7 20V4Z" />
-                <path class="f-glyph-shape" stroke="currentColor" d="M5 2L22 12L5 22V2Z" style="opacity: 0.2"/>
-                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="1.5" />
-            `;
-        } else if (id.includes('web') || id.includes('link') || id.includes('website') || id.includes('portfolio') || id.includes('other')) {
-            // Web / Link -> Diamond + Core
-            paths = `
-                <path class="f-glyph-shape" stroke="currentColor" d="M12 2L2 12L12 22L22 12L12 2Z" />
-                <rect class="f-glyph-shape pulsing" x="11" y="11" width="2" height="2" />
-                <path class="f-glyph-shape" stroke="currentColor" d="M12 6L6 12L12 18L18 12L12 6Z" style="opacity: 0.4"/>
-            `;
-        } else if (id.includes('phone') || id.includes('contact') || id.includes('email') || id.includes('whatsapp')) {
-            // Communication / Signal -> Circles + Cross
-            paths = `
-                <circle class="f-glyph-shape" stroke="currentColor" cx="12" cy="12" r="9" />
-                <path class="f-glyph-shape" stroke="currentColor" d="M12 3V21M3 12H21" style="opacity: 0.3"/>
-                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="3" />
-            `;
-        } else {
-            // Generic fallback
-            paths = `
-                <rect class="f-glyph-shape" stroke="currentColor" x="4" y="4" width="16" height="16" rx="2" />
-                <path class="f-glyph-shape" stroke="currentColor" d="M4 12H20M12 4V20" style="opacity: 0.3"/>
-                <circle class="f-glyph-shape pulsing" cx="12" cy="12" r="2" />
-            `;
+        // Map categories/services to real FontAwesome icons
+        if (id.includes('instagram')) {
+            iconClass = "fab fa-instagram";
+            brandIcon = true;
+        } else if (id.includes('facebook') || id.includes('messenger')) {
+            iconClass = "fab fa-facebook";
+            brandIcon = true;
+        } else if (id.includes('tiktok')) {
+            iconClass = "fab fa-tiktok";
+            brandIcon = true;
+        } else if (id.includes('snapchat')) {
+            iconClass = "fab fa-snapchat";
+            brandIcon = true;
+        } else if (id.includes('youtube')) {
+            iconClass = "fab fa-youtube";
+            brandIcon = true;
+        } else if (id.includes('whatsapp')) {
+            iconClass = "fab fa-whatsapp";
+            brandIcon = true;
+        } else if (id.includes('telegram')) {
+            iconClass = "fab fa-telegram";
+            brandIcon = true;
+        } else if (id.includes('twitter') || id.includes(' x ')) {
+            iconClass = "fab fa-x-twitter";
+            brandIcon = true;
+        } else if (id.includes('linkedin')) {
+            iconClass = "fab fa-linkedin";
+            brandIcon = true;
+        } else if (id.includes('phone') || id.includes('call')) {
+            iconClass = "fas fa-phone";
+        } else if (id.includes('email') || id.includes('mail')) {
+            iconClass = "fas fa-envelope";
+        } else if (id.includes('web') || id.includes('website') || id.includes('link')) {
+            iconClass = "fas fa-globe";
+        } else if (id.includes('location') || id.includes('map')) {
+            iconClass = "fas fa-location-dot";
+        } else if (id.includes('wifi')) {
+            iconClass = "fas fa-wifi";
+        } else if (id.includes('music') || id.includes('spotify') || id.includes('soundcloud')) {
+            iconClass = id.includes('spotify') ? "fab fa-spotify" : (id.includes('soundcloud') ? "fab fa-soundcloud" : "fas fa-music");
+            brandIcon = id.includes('spotify') || id.includes('soundcloud');
+        } else if (id.includes('video') || id.includes('netflix')) {
+            iconClass = id.includes('netflix') ? "fab fa-netflix" : "fas fa-video";
+            brandIcon = id.includes('netflix');
+        } else if (id.includes('shop') || id.includes('store') || id.includes('cart')) {
+            iconClass = "fas fa-shopping-cart";
         }
 
         return `
-            <div class="f-glyph ${animClass}" style="color: ${color}">
-                <svg viewBox="0 0 24 24" width="32" height="32" style="display: block;">
-                    ${paths}
-                </svg>
+            <div class="f-glyph" style="color: ${color}">
+                <i class="${iconClass}" style="font-size: 24px; display: block;"></i>
+                <div class="glyph-glow" style="background: ${color}"></div>
             </div>
         `;
     }

@@ -25,6 +25,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/admin.css">
@@ -61,15 +62,12 @@
                 <div id="user-controls" class="hidden">
                     <!-- Points Display -->
                     <div class="points-badge" id="points-badge" data-t-title="points_disclaimer">
-                        <span class="points-icon">⭐</span>
+                        <span class="points-icon"><i class="fas fa-star"></i></span>
                         <span class="points-value" id="points-value">0</span>
                     </div>
                     <!-- Share Button -->
                     <button class="btn-share" id="share-app-btn" title="Share QRme">
-                        <svg viewBox="0 0 24 24" width="20" height="20">
-                            <path fill="currentColor"
-                                d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-                        </svg>
+                        <i class="fas fa-share-nodes"></i>
                         <span data-t="share_btn">مشاركة</span>
                     </button>
                     <button class="btn-logout" id="logout-btn" data-t="btn_logout">خروج</button>
@@ -97,7 +95,8 @@
                         <label data-t="login_password">كلمة المرور</label>
                         <div class="password-wrapper">
                             <input type="password" id="login-password" placeholder="••••••••" required>
-                            <button type="button" class="toggle-password" data-target="login-password">👁️</button>
+                            <button type="button" class="toggle-password" data-target="login-password"><i
+                                    class="fas fa-eye"></i></button>
                         </div>
                     </div>
 
@@ -138,7 +137,8 @@
                         <label data-t="register_password">كلمة المرور</label>
                         <div class="password-wrapper">
                             <input type="password" id="reg-password" placeholder="••••••••" required minlength="6">
-                            <button type="button" class="toggle-password" data-target="reg-password">👁️</button>
+                            <button type="button" class="toggle-password" data-target="reg-password"><i
+                                    class="fas fa-eye"></i></button>
                         </div>
                         <div class="password-strength">
                             <div class="strength-bar"></div>
@@ -149,7 +149,8 @@
                         <label data-t="register_confirm">تأكيد كلمة المرور</label>
                         <div class="password-wrapper">
                             <input type="password" id="reg-confirm" placeholder="••••••••" required>
-                            <button type="button" class="toggle-password" data-target="reg-confirm">👁️</button>
+                            <button type="button" class="toggle-password" data-target="reg-confirm"><i
+                                    class="fas fa-eye"></i></button>
                         </div>
                         <span class="input-hint" id="confirm-hint"></span>
                     </div>
@@ -168,7 +169,7 @@
         <!-- EMAIL VERIFICATION -->
         <section id="view-verify" class="page auth-page hidden">
             <div class="auth-card verify-card">
-                <div class="verify-icon">📧</div>
+                <div class="verify-icon"><i class="fas fa-envelope-circle-check"></i></div>
                 <h1 data-t="verify_title">تحقق من بريدك</h1>
                 <p data-t="verify_subtitle">أرسلنا رابط التأكيد إلى</p>
                 <p class="verify-email" id="verify-email-display">---</p>
@@ -270,21 +271,30 @@
         <section id="view-admin" class="page hidden admin-supremacy">
             <div class="admin-sidebar">
                 <div class="admin-sidebar-header">
-                    <span class="logo-accent">QR</span><span class="logo-main">me</span>
+                    <button class="btn-toggle-admin-nav" id="admin-nav-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="admin-logo-group">
+                        <span class="logo-accent">QR</span><span class="logo-main">me</span>
+                    </div>
                     <span class="admin-badge">ADMIN // V1</span>
                 </div>
                 <nav class="admin-nav-vertical">
                     <button class="nav-item active" data-target="admin-overview" data-t="admin_overview">
-                        <span class="nav-icon">📊</span> <span data-t="admin_nav_stats">الإحصائيات</span>
+                        <span class="nav-icon"><i class="fas fa-chart-pie"></i></span> <span
+                            data-t="admin_nav_stats">الإحصائيات</span>
                     </button>
                     <button class="nav-item" data-target="admin-users" data-t="admin_users">
-                        <span class="nav-icon">👤</span> <span data-t="admin_nav_users">المستخدمين</span>
+                        <span class="nav-icon"><i class="fas fa-users-gear"></i></span> <span
+                            data-t="admin_nav_users">المستخدمين</span>
                     </button>
                     <button class="nav-item" data-target="admin-identities" data-t="admin_identities">
-                        <span class="nav-icon">🆔</span> <span data-t="admin_nav_ids">الهويات</span>
+                        <span class="nav-icon"><i class="fas fa-id-card-clip"></i></span> <span
+                            data-t="admin_nav_ids">الهويات</span>
                     </button>
                     <button class="nav-item" data-target="admin-logs" data-t="admin_logs">
-                        <span class="nav-icon">📜</span> <span data-t="admin_nav_audit">سجل النشاط</span>
+                        <span class="nav-icon"><i class="fas fa-clock-rotate-left"></i></span> <span
+                            data-t="admin_nav_audit">سجل النشاط</span>
                     </button>
                 </nav>
                 <div class="admin-sidebar-footer">
@@ -379,7 +389,7 @@
                     <div class="vault-meta">
                         <span class="vault-badge" id="vault-badge" data-t="qr_encrypted_title">مشفرة</span>
                         <div class="vault-total-reach" id="vault-total-reach" title="Total Scans">
-                            <span class="reach-icon">📊</span>
+                            <span class="reach-icon"><i class="fas fa-chart-line"></i></span>
                             <span class="reach-count" id="identity-total-scans">0</span>
                         </div>
                     </div>
@@ -435,8 +445,9 @@
                 </form>
                 <div class="danger-zone">
                     <p class="danger-text" data-t="delete_identity_p">عملية مسح الهوية نهائية ولا يمكن التراجع عنها.</p>
-                    <button class="btn-danger btn-full" id="delete-identity-final-btn" data-t="delete_identity_btn">مسح
-                        الهوية نهائياً</button>
+                    <button class="btn-danger btn-full" id="delete-identity-final-btn">
+                        <i class="fas fa-trash-can"></i> <span data-t="delete_identity_btn">مسح الهوية نهائياً</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -445,7 +456,7 @@
         <div id="rules-overlay" class="rules-modal-overlay hidden">
             <div class="rules-container">
                 <div class="rules-header">
-                    <div class="rules-icon">📜</div>
+                    <div class="rules-icon"><i class="fas fa-scroll"></i></div>
                     <h2 data-t="rules_title">قانون اللعبة</h2>
                     <p data-t="rules_subtitle">كيف تسيطر على المستقبل؟</p>
                 </div>

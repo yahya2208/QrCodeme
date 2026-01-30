@@ -221,7 +221,7 @@ const i18n = {
             edit_identity_bio: 'النبذة التعريفية',
             edit_identity_save: 'حفظ التعديلات',
             delete_identity_p: 'عملية مسح الهوية نهائية ولا يمكن التراجع عنها.',
-            delete_identity_btn: '🗑️ مسح الهوية نهائياً',
+            delete_identity_btn: 'مسح الهوية نهائياً',
             delete_confirm_identity: 'هل أنت متأكد من حذف هويتك نهائياً؟ سيتم حذف جميع الأكواد المرتبطة بها أيضاً.'
         },
 
@@ -436,7 +436,7 @@ const i18n = {
             edit_identity_bio: 'Biography',
             edit_identity_save: 'Save Changes',
             delete_identity_p: 'Deleting your identity is permanent and cannot be undone.',
-            delete_identity_btn: '🗑️ Delete Identity Permanently',
+            delete_identity_btn: 'Delete Identity Permanently',
             delete_confirm_identity: 'Are you sure you want to delete your identity permanently? All associated codes will be deleted as well.'
         }
     },

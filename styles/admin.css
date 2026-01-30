@@ -1,5 +1,5 @@
 /* ============================================
-   ADMIN SUPREMACY CSS
+   ADMIN SUPREMACY CSS - RESPONSIVE REVAMP
    ============================================ */
 
 .admin-supremacy {
@@ -8,29 +8,52 @@
     background: #000;
     color: white;
     overflow: hidden;
+    position: relative;
 }
 
+/* Sidebar & Drawer */
 .admin-sidebar {
-    width: 260px;
+    width: 280px;
     background: #050505;
     border-left: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     flex-direction: column;
     padding: 24px;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2000;
+    padding-top: calc(24px + env(safe-area-inset-top));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
 }
 
 .admin-sidebar-header {
     margin-bottom: 40px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    position: relative;
+}
+
+.admin-logo-group {
+    display: flex;
+    align-items: baseline;
+}
+
+.btn-toggle-admin-nav {
+    display: none; /* Desktop hidden */
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-bottom: 12px;
 }
 
 .admin-badge {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 800;
-    color: var(--yellow-warm);
+    color: var(--neon-yellow, #f0ff42);
     letter-spacing: 2px;
+    opacity: 0.7;
 }
 
 .admin-nav-vertical {
@@ -42,18 +65,25 @@
 
 .admin-nav-vertical .nav-item {
     background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.4);
     padding: 14px 18px;
-    border-radius: 12px;
+    border-radius: 14px;
     text-align: right;
     font-family: inherit;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
+}
+
+.nav-icon {
+    font-size: 1.1rem;
+    width: 24px;
+    display: flex;
+    justify-content: center;
 }
 
 .admin-nav-vertical .nav-item:hover {
@@ -63,7 +93,7 @@
 
 .admin-nav-vertical .nav-item.active {
     background: rgba(240, 255, 66, 0.08);
-    color: var(--yellow-warm);
+    color: var(--neon-yellow, #f0ff42);
     border: 1px solid rgba(240, 255, 66, 0.1);
 }
 
@@ -72,6 +102,7 @@
     overflow-y: auto;
     padding: 40px;
     background: radial-gradient(circle at top left, rgba(240, 255, 66, 0.02), transparent 40%);
+    padding-top: calc(40px + env(safe-area-inset-top));
 }
 
 .content-header {
@@ -79,104 +110,203 @@
 }
 
 .content-header h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
     margin: 0;
+    font-weight: 800;
+    letter-spacing: -1px;
 }
 
 .admin-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 24px;
     margin-bottom: 40px;
 }
 
 .kpi-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 24px;
     border-radius: 20px;
-    transition: 0.3s;
+    transition: 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .kpi-card:hover {
-    border-color: var(--yellow-glow);
+    border-color: rgba(240, 255, 66, 0.3);
     transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .kpi-label {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 12px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .kpi-value {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 800;
-    color: var(--yellow-warm);
+    color: var(--neon-yellow, #f0ff42);
 }
 
 /* User Table */
 .admin-table-container {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.01);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    overflow: hidden;
+    border-radius: 24px;
+    overflow-x: auto;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px;
 }
 
 .admin-table th {
-    background: rgba(255, 255, 255, 0.04);
-    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px 16px;
     text-align: right;
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .admin-table td {
     padding: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .status-tag {
     padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
 }
 
-.status-active {
-    background: rgba(50, 255, 100, 0.1);
-    color: #32ff64;
-}
-
-.status-suspended {
-    background: rgba(255, 180, 50, 0.1);
-    color: #ffb432;
-}
-
-.status-banned {
-    background: rgba(255, 50, 50, 0.1);
-    color: #ff3232;
-}
+.status-active { background: rgba(50, 255, 100, 0.1); color: #32ff64; }
+.status-suspended { background: rgba(255, 180, 50, 0.1); color: #ffb432; }
+.status-banned { background: rgba(255, 50, 50, 0.1); color: #ff3232; }
 
 .btn-exit-admin {
     width: 100%;
-    padding: 12px;
-    background: rgba(255, 50, 50, 0.05);
-    border: 1px solid rgba(255, 50, 50, 0.2);
-    color: #ff4444;
-    border-radius: 10px;
+    padding: 14px;
+    background: rgba(255, 50, 50, 0.03);
+    border: 1px solid rgba(255, 50, 50, 0.1);
+    color: #ff5555;
+    border-radius: 12px;
     cursor: pointer;
     transition: 0.3s;
+    font-weight: 700;
 }
 
 .btn-exit-admin:hover {
-    background: #ff4444;
+    background: #ff3333;
     color: white;
+}
+
+/* SEARCH BAR */
+.search-bar input {
+    width: 100%;
+    max-width: 400px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 20px;
+    border-radius: 12px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-bar input:focus {
+    border-color: var(--neon-yellow, #f0ff42);
+    background: rgba(255,255,255,0.08);
+}
+
+/* RESPONSIVE DRAWER LOGIC */
+@media (max-width: 1024px) {
+    .admin-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        transform: translateX(-100%); /* Start hidden in LTR, but we are RTL */
+    }
+
+    [dir="rtl"] .admin-sidebar {
+        left: auto;
+        right: 0;
+        transform: translateX(100%);
+    }
+
+    .admin-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 20px 0 50px rgba(0,0,0,0.8);
+    }
+    
+    [dir="rtl"] .admin-sidebar.open {
+        box-shadow: -20px 0 50px rgba(0,0,0,0.8);
+    }
+
+    .btn-toggle-admin-nav {
+        display: block; /* Show hamburger */
+    }
+
+    /* Backdrop when drawer is open */
+    .admin-supremacy::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0);
+        visibility: hidden;
+        transition: 0.4s;
+        z-index: 1999;
+    }
+
+    .admin-supremacy.nav-open::before {
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(5px);
+        visibility: visible;
+    }
+
+    .admin-main-content {
+        padding: 24px;
+        width: 100%;
+    }
+}
+
+/* MOBILE SPECIFIC FOOTER/EXIT */
+@media (max-width: 600px) {
+    .content-header h1 {
+        font-size: 1.6rem;
+    }
+    
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* GLYPH GLOW EFFECT */
+.glyph-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -50%);
+    filter: blur(20px);
+    opacity: 0.2;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
 }
