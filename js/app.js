@@ -506,16 +506,16 @@ class QRmeApp {
                         actionsHTML = `
                             <div class="vault-item-actions">
                                 <button class="btn-edit-code" data-id="${code.id}" title="${i18n.t('btn_edit')}">
-                                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                    <i class="fas fa-pen"></i>
                                 </button>
                                 <button class="btn-delete-code" data-id="${code.id}" title="${i18n.t('btn_delete')}">
-                                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>`;
                     }
 
                     // Futuristic Glyph Generation (Requirement 1)
-                    const glyphHTML = this.generateFuturisticGlyph(code.service_name || 'generic', code.service_color || '#f0ff42');
+                    const glyphHTML = this.generateFuturisticGlyph(code.service_id, code.service_color || '#f0ff42', code.service_icon);
 
                     item.innerHTML = `
                         <div class="vault-item-main">
@@ -914,7 +914,7 @@ class QRmeApp {
             const name = i18n.current === 'ar' ? (svc.name_ar || svc.name) : (svc.name_en || svc.name || svc.name_ar);
             const localizedName = name || 'Service';
 
-            const glyphHTML = this.generateFuturisticGlyph(svc.id, svc.color || '#f0ff42');
+            const glyphHTML = this.generateFuturisticGlyph(svc.id, svc.color || '#f0ff42', svc.icon_svg);
             item.innerHTML = `
                 <div class="service-icon">${glyphHTML}</div>
                 <span class="service-name">${localizedName}</span>
@@ -934,7 +934,7 @@ class QRmeApp {
         const localizedName = i18n.current === 'ar' ? (service.name_ar || service.name) : (service.name_en || service.name);
         const placeholder = i18n.current === 'ar' ? (service.placeholder_ar || i18n.t('code_value_label')) : (service.placeholder_en || i18n.t('code_value_label'));
 
-        const glyphHTML = this.generateFuturisticGlyph(service.id, service.color);
+        const glyphHTML = this.generateFuturisticGlyph(service.id, service.color, service.icon_svg);
         preview.innerHTML = `
             <div class="preview-icon">${glyphHTML}</div>
             <span class="preview-name">${localizedName}</span>
@@ -1574,7 +1574,17 @@ class QRmeApp {
     // =====================
     // REQUIREMENT 1: SEMANTIC ICONS - MASSIVE EXPANSION
     // =====================
-    generateFuturisticGlyph(serviceId, color = '#f0ff42') {
+    generateFuturisticGlyph(serviceId, color = '#f0ff42', dbIcon = null) {
+        // If DB provides a FontAwesome class, use it directly
+        if (dbIcon && (dbIcon.includes('fa-') || dbIcon.includes('fab ') || dbIcon.includes('fas '))) {
+            return `
+                <div class="f-glyph" style="color: ${color}">
+                    <i class="${dbIcon}"></i>
+                    <div class="glyph-glow" style="background: ${color}"></div>
+                </div>
+            `;
+        }
+
         const id = (serviceId || '').toLowerCase();
         let iconClass = "fas fa-link"; // Fallback: Universal link icon
 

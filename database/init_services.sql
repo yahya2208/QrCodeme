@@ -33,15 +33,18 @@ INSERT INTO code_categories (id, name, icon, sort_order) VALUES
 ('professional', 'Professional', '💼', 4),
 ('media', 'Media & Music', '🎵', 5),
 ('other', 'Other', '✨', 6)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, icon = EXCLUDED.icon, sort_order = EXCLUDED.sort_order;
 
 -- 4. Populate Default Services
 INSERT INTO code_services (id, category_id, name, icon_svg, color, placeholder) VALUES
 -- Contact
 ('whatsapp', 'contact', 'WhatsApp', 'fab fa-whatsapp', '#25D366', 'wa.me/number'),
+('telegram', 'contact', 'Telegram', 'fab fa-telegram', '#0088cc', 't.me/username'),
 ('phone', 'contact', 'Phone', 'fas fa-phone', '#4CAF50', '+1234567890'),
 ('email', 'contact', 'Email', 'fas fa-envelope', '#EA4335', 'email@example.com'),
-('telegram', 'contact', 'Telegram', 'fab fa-telegram', '#0088cc', 't.me/username'),
+('signal', 'contact', 'Signal', 'fas fa-comment', '#3a76f0', 'Signal Number'),
+('viber', 'contact', 'Viber', 'fab fa-viber', '#7360f2', 'Viber Number'),
+('line', 'contact', 'Line', 'fab fa-line', '#00c300', 'Line ID'),
 
 -- Social
 ('facebook', 'social', 'Facebook', 'fab fa-facebook', '#1877F2', 'fb.com/username'),
@@ -58,7 +61,8 @@ INSERT INTO code_services (id, category_id, name, icon_svg, color, placeholder) 
 -- Professional
 ('linkedin', 'professional', 'LinkedIn', 'fab fa-linkedin', '#0A66C2', 'linkedin.com/in/user'),
 ('github', 'professional', 'GitHub', 'fab fa-github', '#181717', 'github.com/user'),
-('gitlab', 'professional', 'GitLab', 'fab fa-gitlab', '#FC6D26', 'gitlab.com/user'),
+('behance', 'professional', 'Behance', 'fab fa-behance', '#1769ff', 'behance.net/user'),
+('dribbble', 'professional', 'Dribbble', 'fab fa-dribbble', '#ea4c89', 'dribbble.com/user'),
 ('cv', 'professional', 'CV / Resume', 'fas fa-file-pdf', '#FF5722', 'Link to PDF'),
 ('portfolio', 'professional', 'Portfolio', 'fas fa-briefcase', '#444444', 'yourwebsite.com'),
 
@@ -66,6 +70,7 @@ INSERT INTO code_services (id, category_id, name, icon_svg, color, placeholder) 
 ('youtube', 'media', 'YouTube', 'fab fa-youtube', '#FF0000', 'youtube.com/@channel'),
 ('spotify', 'media', 'Spotify', 'fab fa-spotify', '#1DB954', 'open.spotify.com/user'),
 ('soundcloud', 'media', 'SoundCloud', 'fab fa-soundcloud', '#FF3300', 'soundcloud.com/user'),
+('medium', 'media', 'Medium', 'fab fa-medium', '#000000', 'medium.com/@user'),
 
 -- Payments
 ('paypal', 'payment', 'PayPal', 'fab fa-paypal', '#003087', 'paypal.me/user'),
@@ -75,7 +80,12 @@ INSERT INTO code_services (id, category_id, name, icon_svg, color, placeholder) 
 -- Other
 ('website', 'other', 'Website', 'fas fa-globe', '#7C4DFF', 'https://example.com'),
 ('other', 'other', 'Other', 'fas fa-star', '#f0ff42', 'Any Link')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET 
+    category_id = EXCLUDED.category_id,
+    name = EXCLUDED.name,
+    icon_svg = EXCLUDED.icon_svg,
+    color = EXCLUDED.color,
+    placeholder = EXCLUDED.placeholder;
 
 -- 5. FINAL REPAIR: Ensure all shops have a valid service_id
 -- If a shop has a service_id that doesn't exist in code_services, it defaults to 'website' 
@@ -83,6 +93,7 @@ ON CONFLICT (id) DO NOTHING;
 UPDATE shops SET service_id = 'website' WHERE service_id NOT IN (SELECT id FROM code_services);
 
 -- 6. Ensure get_identity_codes is using the correct JOIN
+DROP FUNCTION IF EXISTS get_identity_codes(TEXT, UUID) CASCADE;
 CREATE OR REPLACE FUNCTION get_identity_codes(p_identity_id TEXT, p_viewer_id UUID DEFAULT NULL)
 RETURNS TABLE (
     id BIGINT,
