@@ -31,6 +31,6 @@ class AppConfig {
   static const String appName = 'Qr Id';
   
   // Update this to your local IP for physical device testing
-  // Use http://10.0.2.2:3001 for Android Emulator
-  static const String baseUrl = 'http://10.0.2.2:3001/api'; 
+  // Use http://10.0.2.2:3001 for Android Emulator 
+  static const String baseUrl = 'https://qrme-nu.vercel.app/api'; 
 }
