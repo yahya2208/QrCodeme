@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRme | Child Safety Standards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Cairo:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030303;
+            --card: #0a0a0a;
+            --accent: #f0ff42;
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+            --error: #ff4444;
+        }
+
+        [lang="en"] { direction: ltr; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Cairo', 'Outfit', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .logo .accent { color: var(--accent); }
+
+        .lang-switch {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        h1 { font-size: 28px; margin-bottom: 10px; }
+        .last-update { color: var(--accent); font-size: 14px; margin-bottom: 30px; }
+
+        section { margin-bottom: 30px; }
+        h2 { font-size: 20px; color: var(--accent); margin-bottom: 15px; }
+        p { line-height: 1.6; color: var(--text-dim); margin-bottom: 10px; }
+        ul { color: var(--text-dim); padding-inline-start: 20px; }
+        li { margin-bottom: 8px; line-height: 1.4; }
+
+        .warning-box {
+            border: 1px solid var(--error);
+            background: rgba(255, 68, 68, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .warning-box h3 {
+            color: var(--error);
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .footer-note {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid var(--accent);
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover {
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo"><span class="accent">QR</span>me</div>
+            <button class="lang-switch" onclick="toggleLang()">Switch to English</button>
+        </header>
+
+        <div id="content-ar">
+            <h1>معايير سلامة الأطفال</h1>
+            <p class="last-update">آخر تحديث: 2 فبراير 2026</p>
+
+            <div class="warning-box">
+                <h3>سياسة عدم التسامح مطلقاً</h3>
+                <p>تلتزم QRme بتوفير بيئة آمنة لجميع المستخدمين، وتتبع سياسة عدم التسامح مطلقاً تجاه أي محتوى أو سلوك يتضمن استغلال الأطفال أو الاعتداء الجنسي عليهم (CSAE).</p>
+            </div>
+
+            <section>
+                <h2>1. معاييرنا ضد استغلال الأطفال</h2>
+                <p>نحن نحظر بشكل قاطع ما يلي:</p>
+                <ul>
+                    <li>أي صور أو مقاطع فيديو أو نصوص تصور استغلال الأطفال جنسياً.</li>
+                    <li>أي محاولات لاستدراج الأطفال أو التغرير بهم (Child Grooming).</li>
+                    <li>الترويج لأي أنشطة تضر بسلامة القاصرين.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>2. آليات الإبلاغ</h2>
+                <p>توفر QRme أدوات سهلة ومباشرة داخل التطبيق للإبلاغ عن أي محتوى مشبوه أو مستخدمين ينتهكون معايير السلامة. يتم فحص جميع البلاغات المتعلقة بسلامة الأطفال كأولوية قصوى.</p>
+                <p>للإبلاغ الفوري، يمكنك مراسلتنا أيضاً عبر: <strong style="color: var(--accent);">frpyahya@gmail.com</strong></p>
+            </section>
+
+            <section>
+                <h2>3. الإجراءات والامتثال للقانون</h2>
+                <p>عند اكتشاف أي محتوى يتضمن اعتداءً جنسياً على الأطفال، نقوم باتخاذ الإجراءات التالية:</p>
+                <ul>
+                    <li>حذف المحتوى فوراً وإغلاق حساب المستخدم نهائياً.</li>
+                    <li>إبلاغ المركز الوطني للأطفال المفقودين والمستغلين (NCMEC) أو الجهات الأمنية المختصة.</li>
+                    <li>التعاون الكامل مع السلطات القانونية في التحقيقات.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>4. التوعية</h2>
+                <p>ننصح جميع المستخدمين وأولياء الأمور بالحفاظ على خصوصية بياناتهم وعدم مشاركة معلومات حساسة مع الغرباء عبر رموز QR أو الروابط المرتبطة بها.</p>
+            </section>
+
+            <a href="index.html" class="btn-back">العودة للتطبيق</a>
+        </div>
+
+        <div id="content-en" style="display: none;">
+            <h1>Child Safety Standards</h1>
+            <p class="last-update">Last Update: February 2, 2026</p>
+
+            <div class="warning-box">
+                <h3>Zero Tolerance Policy</h3>
+                <p>QRme is committed to providing a safe environment for all users and maintains a zero-tolerance policy toward any content or behavior involving child sexual abuse and exploitation (CSAE).</p>
+            </div>
+
+            <section>
+                <h2>1. Standards Against Child Exploitation</h2>
+                <p>We strictly prohibit the following:</p>
+                <ul>
+                    <li>Any images, videos, or text depicting child sexual abuse material (CSAM).</li>
+                    <li>Any attempts at child grooming or predatory behavior.</li>
+                    <li>Promotion of any activities harmful to the safety of minors.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>2. Reporting Mechanisms</h2>
+                <p>QRme provides easy and direct in-app tools to report suspicious content or users who violate safety standards. All reports related to child safety are investigated as a top priority.</p>
+                <p>For immediate reporting, you can also contact us at: <strong style="color: var(--accent);">frpyahya@gmail.com</strong></p>
+            </section>
+
+            <section>
+                <h2>3. Actions and Legal Compliance</h2>
+                <p>Upon detection of any CSAM, we take the following actions:</p>
+                <ul>
+                    <li>Immediate removal of content and permanent termination of the user account.</li>
+                    <li>Reporting to the National Center for Missing & Exploited Children (NCMEC) or relevant law enforcement authorities.</li>
+                    <li>Full cooperation with legal authorities in investigations.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>4. Awareness</h2>
+                <p>We advise all users and parents to maintain data privacy and not share sensitive information with strangers via QR codes or associated links.</p>
+            </section>
+
+            <a href="index.html" class="btn-back">Back to App</a>
+        </div>
+
+        <div class="footer-note">
+            &copy; 2026 QRme Nexus Protocol. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'ar';
+        function toggleLang() {
+            const ar = document.getElementById('content-ar');
+            const en = document.getElementById('content-en');
+            const btn = document.querySelector('.lang-switch');
+            const html = document.documentElement;
+
+            if (currentLang === 'ar') {
+                ar.style.display = 'none';
+                en.style.display = 'block';
+                btn.textContent = 'العربية';
+                html.lang = 'en';
+                html.dir = 'ltr';
+                currentLang = 'en';
+            } else {
+                ar.style.display = 'block';
+                en.style.display = 'none';
+                btn.textContent = 'Switch to English';
+                html.lang = 'ar';
+                html.dir = 'rtl';
+                currentLang = 'ar';
+            }
+        }
+    </script>
+</body>
+</html>
