@@ -1,4 +1,4 @@
-package com.qrnexus.mobile_app
+package co.median.android.lpzmyxz
 
 import io.flutter.embedding.android.FlutterActivity
 
